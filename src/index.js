@@ -1,10 +1,6 @@
 require("dotenv").config()
-const ranked = require("./ranked.js")
 const db = require("./database.js")
 const Discord= require("discord.js")
-const {exec} = require("better-sqlite3/lib/methods/wrappers");
-const {queryMatchHistory} = require("./database");
-const database = require("better-sqlite3")('D:\\discord-bot\\src\\databanks\\test.db')
 const bot = new Discord.Client({
     intents: [
         Discord.IntentsBitField.Flags.Guilds,
@@ -40,7 +36,9 @@ let statuses = [
     "Skibidi Toilet",
     "Why do I always have to drink water only to piss it out again? This place is a prison.",
     "Nuke the french (sorry Auro)",
-    "Heavens door, remove his ability to cum!"
+    "Heavens door, remove his ability to cum!",
+    "Check out my perfect form. It's perfect!",
+    "A beverage of sorts?"
 ]
 
 bot.on("ready", (c) => {
@@ -54,34 +52,36 @@ bot.on("ready", (c) => {
     }, 60000);
 })
 
-bot.on("messageCreate", (message) => {
-    if(respondToKeywords) {
-        if(message.content.includes("Bingo")) {
-            message.reply({files: [{attachment: "assets\\gojo-bingo.gif", name: "getBingoed.gif"}]})
-        }
-        if(message.content.includes("cock")) {
-            message.reply({files: [{attachment: "assets\\cockbending.png", name: "cockbending.jpg"}]})
-        }
-        if(message.content.includes("prince of all saiyans")) {
-            message.reply({files: [{attachment: "assets\\princeofallsaiyans.mp4", name: "video.mp4"}]})
-        }
-    }
-    if(message.content.startsWith(prefix)) {
+bot.on("messageCreate", async (message) => {
+    // only going to add it back once I got the functionality down
+
+    // if(respondToKeywords) {
+    //     if(message.content.includes("Bingo")) {
+    //         message.reply({files: [{attachment: "assets\\gojo-bingo.gif", name: "getBingoed.gif"}]})
+    //     }
+    //     if(message.content.includes("cock")) {
+    //         message.reply({files: [{attachment: "assets\\cockbending.png", name: "cockbending.jpg"}]})
+    //     }
+    //     if(message.content.includes("prince of all saiyans")) {
+    //         message.reply({files: [{attachment: "assets\\princeofallsaiyans.mp4", name: "video.mp4"}]})
+    //     }
+    // }
+    if (message.content.startsWith(prefix)) {
 
         message.content = message.content.substring(1)
     }
     /*
      * basic functionality
      */
-    if(message.content === "reactions") {
+    if (message.content === "reactions") {
         respondToKeywords = !respondToKeywords
         message.reply("T-The reactions are turned to " + respondToKeywords.toString() + "!")
     }
-    if(message.content.startsWith("changePrefix")) {
+    if (message.content.startsWith("changePrefix")) {
         let parts = message.content.split(" ")
-        if(!parts[1]) {
+        if (!parts[1]) {
             message.reply("P-Please enter a symbol...")
-        } else if(parts[1].length > 2) {
+        } else if (parts[1].length > 2) {
             message.reply("T-The prefix cant be longer than two characters..")
         } else {
             prefix = parts[1]
@@ -91,27 +91,33 @@ bot.on("messageCreate", (message) => {
     /*
      * ranked
      */
-    if(message.content === "matches") {
-        const channel = bot.channels.cache.get(message.channelId)
-        replyMatchHistory = queryMatchHistory(message.guildId.toString())
-        const exampleEmbed = new Discord.EmbedBuilder()
-            .setColor(0xE8A7A1)
-            .setTitle('match history')
-            .setDescription('Last 5 matches')
-            .setThumbnail(message.guild.iconURL()) //change with server icon?
-            .addFields(
-                { name: '\u200B', value: '\u200B' },
-                { name: 'Inline field title', value: 'Some value here', inline: false },
-                { name: 'Inline field title', value: 'Some value here', inline: true },
-            )
-            .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
-            .setTimestamp()
-        message.reply(replyMatchHistory.map(entry => entry["first_player"] + " " + entry["score_first_player"] + " - " + entry["score_second_player"] + " " + entry["second_player"]).join(",") + message.guild.iconURL()|| "no matches available")
-        message.reply({embeds: [exampleEmbed]})
-        console.log(bot.users.fetch("469447356195143680"))
+
+    // TO DO: person specific query
+    if (message.content.startsWith("matches")) {
+        let messageInfo = message.content.split(" ")
+        let entries = messageInfo.length === 1 ? 5 : messageInfo[1]
+        const matchHistory = db.getMatchHistory(message.guildId.toString(), entries)
+        let embed = []
+        for (let i = 0; i < matchHistory.length; i++) {
+            let page = Math.floor(i / 25)
+            if (i % 25 === 0) {
+                embed[page] = new Discord.EmbedBuilder()
+                    .setColor(0xE8A7A1)
+                    .setTitle('Match History')
+                    .setDescription('Last ' + matchHistory.length + ' matches')
+                    .setThumbnail(message.guild.iconURL())
+                    .setTimestamp()
+            }
+            let entry = matchHistory[i]
+            embed[page].addFields({
+                name: "Match " + entry["id"],
+                value: entry["first_player"] + " " + entry["score_first_player"] + " - " + entry["score_second_player"] + " " + entry["second_player"]
+            })
+        }
+        await message.reply({embeds: [...embed]})
 
     }
-    if(message.content.startsWith("result")) {
+    if (message.content.startsWith("result")) {
         let matchResult = message.content.split(" ")
         let reply = matchResult.length !== 4 ? "Seems like you didn't add enough parameters!" :
             !(matchResult[1].startsWith("<@")) || !(matchResult[2].startsWith("<@")) ? "You have to enter two discord accounts, you dummy!" :
@@ -120,46 +126,118 @@ bot.on("messageCreate", (message) => {
                         "The match has been added to the database!"
         try {
             db.addResultToDatabase(matchResult, message.guildId.toString())
-            message.reply(reply)
+            await message.reply(reply)
         } catch (exception) {
             console.log(exception.message)
-            message.reply("Oops, im sorry, something went wrong!")
+            await message.reply("Oops, im sorry, something went wrong!")
         }
     }
-    if(message.content.startsWith("stats")) {
+    if (message.content.startsWith("stats")) {
         let messageArguments = message.content.split(" ")
-        message.reply("lmao")
+        // need to check if message argument is a discord user or not
+        let playerID = messageArguments.length === 1 ? "<@" + message.author.id + ">" : messageArguments[1]
+        let player = bot.users.fetch(playerID.slice(2, -1)).then(player => player.avatarURL())
+        let playerStats = db.getPlayerStats(message.guildId.toString(), playerID)
+        let embed = new Discord.EmbedBuilder()
+            .setColor(0xE8A7A1)
+            .setTitle('Player Stats')
+            .setDescription('User: ' + message.author.globalName)
+            .setThumbnail(await player)
+            .setTimestamp()
+            .addFields({
+                    name: "Match Rating",
+                    value: Math.round(playerStats["current_rating"]).toString(),
+                    inline: true
+                },
+                {
+                    name: "Highest MR",
+                    value: Math.round(playerStats["max_rating"]).toString(),
+                    inline: true
+                },
+                {
+                    name: "Lowest MR",
+                    value: Math.round(playerStats["min_rating"]).toString(),
+                    inline: true
+                },
+                {
+                    name: "Victories",
+                    value: playerStats["wins"].toString(),
+                    inline: true
+                },
+                {
+                    name: "Defeats",
+                    value: playerStats["losses"].toString(),
+                    inline: true
+                },
+                {
+                    name: "Winrate",
+                    value: Math.round((+playerStats["wins"] / +playerStats["total_matches"]) * 100) + " %",
+                    inline: true
+                },
+                {
+                    name: "Rounds won",
+                    value: playerStats["won_games"].toString(),
+                    inline: true
+                },
+                {
+                    name: "Rounds lost",
+                    value: playerStats["lost_games"].toString(),
+                    inline: true
+                },
+                {
+                    name: "Round winrate",
+                    value: Math.round((+playerStats["won_games"] / (+playerStats["won_games"] + +playerStats["lost_games"])) * 100) + " %",
+                    inline: true
+                },
+                {
+                    name: "Total games",
+                    value: (+playerStats["won_games"] + +playerStats["lost_games"]).toString(),
+                    inline: true
+                },
+                {
+                    name: "Streak",
+                    value: playerStats["current_streak"].toString(),
+                    inline: true
+                },
+                {
+                    name: "Highest streak",
+                    value: playerStats["best_streak"].toString(),
+                    inline: true
+                },)
+
+        await message.reply({embeds: [embed]})
     }
-    if(message.content === "createRankedTable") {
-        if(db.doesDatabaseExist(message.guildId)) {
+    if (message.content === "createRankedTable") {
+        if (db.doesDatabaseExist(message.guildId)) {
             db.createRankedTables(message.guildId)
-            message.reply("The ranked database has been set up!")
+            await message.reply("The ranked database has been set up!")
         } else {
-            message.reply("The ranked database is already set up.")
+            await message.reply("The ranked database is already set up.")
         }
     }
     /*
      * debug
      */
-    if(message.content.startsWith("message")) {
+    if (message.content.startsWith("message")) {
         const channel = bot.channels.cache.get(message.channelId)
-        const exampleEmbed = new Discord.EmbedBuilder()
-            .setColor(0xE8A7A1)
-            .setTitle('Some title')
-            .setDescription('Some description here')
-            .setThumbnail('https://i.imgur.com/AfFp7pu.png')
-            .addFields(
-                { name: 'Regular field title', value: 'Some value here' },
-                { name: '\u200B', value: '\u200B' },
-                { name: 'Inline field title', value: 'Some value here', inline: true },
-                { name: 'Inline field title', value: 'Some value here', inline: true },
-            )
-            .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
-            .setImage('https://i.imgur.com/AfFp7pu.png')
-            .setTimestamp()
-            .setFooter({ text: 'Some footer text here', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
-        channel.send("This is the " + channel.name + " channel")
-        channel.send({embeds: [exampleEmbed]})
+        // const exampleEmbed = new Discord.EmbedBuilder()
+        //     .setColor(0xE8A7A1)
+        //     .setTitle('Some title')
+        //     .setDescription('Some description here')
+        //     .setThumbnail('https://i.imgur.com/AfFp7pu.png')
+        //     .addFields(
+        //         {name: 'Regular field title', value: 'Some value here'},
+        //         {name: '\u200B', value: '\u200B'},
+        //         {name: 'Inline field title', value: 'Some value here', inline: true},
+        //         {name: 'Inline field title', value: 'Some value here', inline: true},
+        //     )
+        //     .addFields({name: 'Inline field title', value: 'Some value here', inline: true})
+        //     .setImage('https://i.imgur.com/AfFp7pu.png')
+        //     .setTimestamp()
+        //     .setFooter({text: 'Some footer text here', iconURL: 'https://i.imgur.com/AfFp7pu.png'});
+        // channel.send("This is the " + channel.name + " channel")
+        await channel.send("<@" + message.author.id + ">")
+        console.log(message.author.id)
     }
 })
 bot.login(

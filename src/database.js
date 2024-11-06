@@ -9,17 +9,26 @@ function createRankedTables(serverName){
     sql = "CREATE TABLE IF NOT EXISTS " + tableName + "(player_name varchar, current_rating integer, max_rating integer, min_rating integer, total_matches integer,wins integer, losses integer, won_games integer, lost_games integer, current_streak integer, best_streak integer)"
     database.exec(sql)
 }
-function queryMatchHistory(serverID, entries = 5) {
-    let tableName = "matches_" + serverID
-    let sql = "SELECT * FROM " + tableName + " ORDER BY id DESC"
-    return database.prepare(sql).all().slice(0, entries)
-}
 function createPlayerEntry(player, serverID){
     let tableName = "player_stats_" + serverID
     let sql = "INSERT INTO " + tableName + " VALUES(?,?,?,?,?,?,?,?,?,?,?)"
     database.prepare(sql).run(player,500,500,500,0,0,0,0,0,0,0)
     sql = "SELECT * FROM " + tableName + " WHERE player_name = ?"
     return database.prepare(sql).get(player)
+}
+function getMatchHistory(serverID, entries) {
+    let tableName = "matches_" + serverID
+    let sql = "SELECT * FROM " + tableName + " ORDER BY id DESC"
+    return database.prepare(sql).all().slice(0, entries)
+}
+function getPlayerStats(serverID, playerID) {
+    let tableName = "player_stats_" + serverID
+    let sql = "SELECT * FROM " + tableName + " WHERE player_name = ?"
+    return database.prepare(sql).get(playerID)
+}
+function getTableCount(tableName) {
+    let sql = "SELECT * FROM " + tableName
+    return database.prepare(sql).all().length
 }
 function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, secondPlayerScore, serverID) {
     let tableName = "player_stats_" + serverID
@@ -56,11 +65,6 @@ function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, second
         secondPlayer
     )
 }
-
-function getTableCount(tableName) {
-    let sql = "SELECT * FROM " + tableName
-    return database.prepare(sql).all().length
-}
 function addResultToDatabase(matchResult, serverID) {
     let firstPlayer = matchResult[1]
     let secondPlayer = matchResult[2]
@@ -80,4 +84,4 @@ function doesDatabaseExist(tableName) {
     return database.exec(sql) !== 0
 }
 
-module.exports = {createRankedTables, queryMatchHistory, updateStatsDatabase, addResultToDatabase, doesDatabaseExist}
+module.exports = {createRankedTables, getMatchHistory, getPlayerStats, updateStatsDatabase, addResultToDatabase, doesDatabaseExist}
