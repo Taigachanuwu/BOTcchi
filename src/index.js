@@ -52,6 +52,10 @@ bot.on("ready", (c) => {
     }, 60000);
 })
 
+bot.on("guildCreate", (c) => {
+    console.log("Joined " + c.name)
+})
+
 bot.on("messageCreate", async (message) => {
     // only going to add it back once I got the functionality down
 
@@ -64,6 +68,9 @@ bot.on("messageCreate", async (message) => {
     //     }
     //     if(message.content.includes("prince of all saiyans")) {
     //         message.reply({files: [{attachment: "assets\\princeofallsaiyans.mp4", name: "video.mp4"}]})
+    //     }
+    //     if(message.content.includes("awesome fucking tien edit")) {
+    //         message.reply({files: [{attachment: "assets\\coolTienEdit.mp4", name: "video.mp4"}]})
     //     }
     // }
     if (message.content.startsWith(prefix)) {
@@ -144,7 +151,8 @@ bot.on("messageCreate", async (message) => {
             .setDescription('User: ' + message.author.globalName)
             .setThumbnail(await player)
             .setTimestamp()
-            .addFields({
+            .addFields(
+                {
                     name: "Match Rating",
                     value: Math.round(playerStats["current_rating"]).toString(),
                     inline: true
