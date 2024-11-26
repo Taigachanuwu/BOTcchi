@@ -1,6 +1,7 @@
 require("dotenv").config()
 const db = require("./database.js")
 const Discord= require("discord.js")
+const {createReactionsEntry, isReactionActivated, updateReactionActivation, updateServerReactionActivation} = require("./database");
 const bot = new Discord.Client({
     intents: [
         Discord.IntentsBitField.Flags.Guilds,
@@ -12,7 +13,7 @@ const bot = new Discord.Client({
 })
 // create prefix database for changeability
 let prefix = "!"
-let respondToKeywords = true
+const respondToKeywords = (channelID) => isReactionActivated(channelID)
 let statuses = [
     "The One Piece is real!",
     "Nah, I'd win",
@@ -41,8 +42,16 @@ let statuses = [
     "A beverage of sorts?"
 ]
 
+async function getChannelIds() {
+    const discordServers = bot.guilds.cache;
+    let channels = discordServers.map(discordServer => discordServer.channels.cache)
+    channels = channels.map(guild => guild.map(channel => [channel.id, channel.guildId])).flat()
+    return channels
+}
+
 bot.on("ready", (c) => {
     console.log(c.user.tag.split("#")[0] + " is ready uwu")
+    getChannelIds().then(channels => channels.forEach(channel => createReactionsEntry(channel[0], channel[1])))
     setInterval(() => {
         let randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
         bot.user.setActivity({
@@ -57,9 +66,9 @@ bot.on("guildCreate", (c) => {
 })
 
 bot.on("messageCreate", async (message) => {
-    // only going to add it back once I got the functionality down
+    let response = respondToKeywords(message.channelId)
 
-    if(respondToKeywords) {
+    if(response) {
         if(message.content.includes("Bingo")) {
             message.reply({files: [{attachment: "assets\\gojo-bingo.gif", name: "getBingoed.gif"}]})
         }
@@ -92,8 +101,14 @@ bot.on("messageCreate", async (message) => {
      * basic functionality
      */
     if (message.content === "reactions") {
-        respondToKeywords = !respondToKeywords
-        message.reply("T-The reactions are turned to " + respondToKeywords.toString() + "!")
+        response = !response
+        updateReactionActivation(message.channelId, response)
+        message.reply("T-The reactions are turned to " + response.toString() + "!")
+    }
+    if (message.content === "reactions server") {
+        response = !response
+        updateServerReactionActivation(message.guildId, response)
+        message.reply("T-The reactions for the whole server are turned to " + response.toString() + "!")
     }
     if (message.content.startsWith("changePrefix")) {
         let parts = message.content.split(" ")

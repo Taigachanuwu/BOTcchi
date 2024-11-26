@@ -16,6 +16,10 @@ function createPlayerEntry(player, serverID){
     sql = "SELECT * FROM " + tableName + " WHERE player_name = ?"
     return database.prepare(sql).get(player)
 }
+function createReactionsEntry(channelID, serverID) {
+    let sql = "INSERT OR IGNORE INTO reactions VALUES(?,?,false)"
+    database.prepare(sql).run(channelID,serverID)
+}
 function getMatchHistory(serverID, entries) {
     let tableName = "matches_" + serverID
     let sql = "SELECT * FROM " + tableName + " ORDER BY id DESC"
@@ -65,6 +69,16 @@ function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, second
         secondPlayer
     )
 }
+function updateReactionActivation(channelID, reactions) {
+    let sql = "UPDATE reactions SET activated = ? WHERE channel_id = ?"
+    database.prepare(sql).run(reactions ? 1 : 0, channelID)
+}
+
+function updateServerReactionActivation(serverID, reactions) {
+    let sql = "UPDATE reactions SET activated = ? WHERE server_id = ?"
+    database.prepare(sql).run(reactions ? 1 : 0, serverID)
+}
+
 function addResultToDatabase(matchResult, serverID) {
     let firstPlayer = matchResult[1]
     let secondPlayer = matchResult[2]
@@ -76,12 +90,17 @@ function addResultToDatabase(matchResult, serverID) {
     let tableName = "matches_" + serverID
     let sql = "INSERT INTO " + tableName + "(id,first_player,second_player,score_first_player,score_second_player,winner) VALUES (?,?,?,?,?,?)"
     database.prepare(sql).run(getTableCount(tableName) + 1, matchResult[1], matchResult[2], scoreFirstPlayer, scoreSecondPlayer, winner)
-    db.updateStatsDatabase(firstPlayer, secondPlayer, scoreFirstPlayer, scoreSecondPlayer, serverID)
+    updateStatsDatabase(firstPlayer, secondPlayer, scoreFirstPlayer, scoreSecondPlayer, serverID)
 }
 
 function doesDatabaseExist(tableName) {
-    let sql = "SELECT count(*) FROM sqlite_master WHERE type='table' AND name=" + "'matches_" + tableName + "'"
-    return database.exec(sql) !== 0
+    let sql = "SELECT * FROM sqlite_master WHERE type='table' AND name=" + "'matches_" + tableName + "'"
+    return database.exec(sql).length !== 0
 }
 
-module.exports = {createRankedTables, getMatchHistory, getPlayerStats, updateStatsDatabase, addResultToDatabase, doesDatabaseExist}
+function isReactionActivated(channelID) {
+    let sql = "SELECT activated FROM reactions WHERE channel_id = ?"
+    return database.prepare(sql).get(channelID)["activated"]
+}
+
+module.exports = {createRankedTables, createReactionsEntry, getMatchHistory, getPlayerStats, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, doesDatabaseExist, isReactionActivated}
