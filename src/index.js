@@ -13,7 +13,6 @@ const bot = new Discord.Client({
 })
 // create prefix database for changeability
 let prefix = "!"
-const respondToKeywords = (channelID) => isReactionActivated(channelID)
 let statuses = [
     "The One Piece is real!",
     "Nah, I'd win",
@@ -66,7 +65,7 @@ bot.on("guildCreate", (c) => {
 })
 
 bot.on("messageCreate", async (message) => {
-    let response = respondToKeywords(message.channelId)
+    let response = isReactionActivated(message.channelId)
 
     if(response) {
         if(message.content.includes("Bingo")) {
