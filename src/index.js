@@ -59,20 +59,31 @@ bot.on("guildCreate", (c) => {
 bot.on("messageCreate", async (message) => {
     // only going to add it back once I got the functionality down
 
-    // if(respondToKeywords) {
-    //     if(message.content.includes("Bingo")) {
-    //         message.reply({files: [{attachment: "assets\\gojo-bingo.gif", name: "getBingoed.gif"}]})
-    //     }
-    //     if(message.content.includes("cock")) {
-    //         message.reply({files: [{attachment: "assets\\cockbending.png", name: "cockbending.jpg"}]})
-    //     }
-    //     if(message.content.includes("prince of all saiyans")) {
-    //         message.reply({files: [{attachment: "assets\\princeofallsaiyans.mp4", name: "video.mp4"}]})
-    //     }
-    //     if(message.content.includes("awesome fucking tien edit")) {
-    //         message.reply({files: [{attachment: "assets\\coolTienEdit.mp4", name: "video.mp4"}]})
-    //     }
-    // }
+    if(respondToKeywords) {
+        if(message.content.includes("Bingo")) {
+            message.reply({files: [{attachment: "assets\\gojo-bingo.gif", name: "getBingoed.gif"}]})
+        }
+        if(message.content.includes("cock")) {
+            message.reply({files: [{attachment: "assets\\cockbending.png", name: "cockbending.jpg"}]})
+        }
+        if(message.content.includes("prince of all saiyans")) {
+            message.reply({files: [{attachment: "assets\\princeofallsaiyans.mp4", name: "video.mp4"}]})
+        }
+        if(message.content.toLowerCase().includes("awesome fucking tien edit")) {
+            message.reply({files: [{attachment: "assets\\coolTienEdit.mp4", name: "video.mp4"}]})
+        }
+        if(message.content.includes("goku")) {
+            let image = [
+                "assets\\gokucircles\\7fe.jpg",
+                "assets\\gokucircles\\9c9.jpg",
+                "assets\\gokucircles\\img.png",
+                "assets\\gokucircles\\img_1.png",
+                "assets\\gokucircles\\niko-from-dragon-ball-z-v0-vemp5dgmo73e1.webp",
+            ]
+            message.reply({files: [{attachment: image[Math.floor(Math.random() * image.length)], name: "image.png"}]})
+        }
+    }
+
     if (message.content.startsWith(prefix)) {
 
         message.content = message.content.substring(1)
