@@ -47,6 +47,9 @@ async function getChannelIds() {
     channels = channels.map(guild => guild.map(channel => [channel.id, channel.guildId])).flat()
     return channels
 }
+function isAdmin(msg) {
+    return msg.member.permissionsIn(msg.channel).has(Discord.PermissionsBitField.Flags.Administrator)
+}
 
 bot.on("ready", (c) => {
     console.log(c.user.tag.split("#")[0] + " is ready uwu")
@@ -90,40 +93,145 @@ bot.on("messageCreate", async (message) => {
             ]
             message.reply({files: [{attachment: image[Math.floor(Math.random() * image.length)], name: "image.png"}]})
         }
+        if(message.content.includes("the drink")) {
+            let clip = [
+                "assets\\thedrink\\the_cup.mov",
+                "assets\\thedrink\\they_call_him_the_what.mov",
+                "assets\\thedrink\\u_think.mov",
+                "assets\\thedrink\\the_cup.mov",
+            ]
+            message.reply({files: [{attachment: clip[Math.floor(Math.random() * clip.length)], name: "video.mp4"}]})
+        }
     }
 
     if (message.content.startsWith(prefix)) {
-
         message.content = message.content.substring(1)
     }
     /*
      * basic functionality
      */
-    if (message.content === "reactions") {
-        response = !response
-        updateReactionActivation(message.channelId, response)
-        message.reply("T-The reactions are turned to " + response.toString() + "!")
+    if(message.content.startsWith("avatar")) {
+        let userID = message.content.split(" ")[1].slice(2, -1)
+        let user = await bot.users.fetch(userID).then((user) => user.displayAvatarURL({size: 4096}))
+        await message.reply(user)
     }
-    if (message.content === "reactions server") {
-        response = !response
-        updateServerReactionActivation(message.guildId, response)
-        message.reply("T-The reactions for the whole server are turned to " + response.toString() + "!")
-    }
-    if (message.content.startsWith("changePrefix")) {
-        let parts = message.content.split(" ")
-        if (!parts[1]) {
-            message.reply("P-Please enter a symbol...")
-        } else if (parts[1].length > 2) {
-            message.reply("T-The prefix cant be longer than two characters..")
-        } else {
-            prefix = parts[1]
-            message.reply("T-The prefix was successfully changed!!")
+
+    if(isAdmin(message)) {
+        /*
+         * basic functionality
+         */
+        if (message.content === "reactions") {
+            response = !response
+            updateReactionActivation(message.channelId, response)
+            message.reply("T-The reactions are turned to " + response.toString() + "!")
+        }
+        if (message.content === "reactions server") {
+            response = !response
+            updateServerReactionActivation(message.guildId, response)
+            message.reply("T-The reactions for the whole server are turned to " + response.toString() + "!")
+        }
+        if (message.content.startsWith("changePrefix")) {
+            let parts = message.content.split(" ")
+            if (!parts[1]) {
+                message.reply("P-Please enter a symbol...")
+            } else if (parts[1].length > 2) {
+                message.reply("T-The prefix cant be longer than two characters..")
+            } else {
+                prefix = parts[1]
+                message.reply("T-The prefix was successfully changed!!")
+            }
+        }
+        /*
+         * ranked
+         */
+        if (message.content.startsWith("result")) {
+            let matchResult = message.content.split(" ")
+            if(matchResult.length !== 4) {
+                await message.reply("Seems like you didn't add enough parameters!")
+            } else if(!(matchResult[1].startsWith("<@")) || !(matchResult[2].startsWith("<@"))) {
+                await message.reply("You have to enter two discord accounts, you dummy!")
+            } else if(matchResult[1] === matchResult[2]) {
+                await message.reply("You have to enter two **different** discord accounts, silly. :3")
+            } else if(!matchResult[3].includes("-") && !matchResult[3].includes(":")) {
+                await message.reply("It seems like the result was not entered properly. Please try again")
+            } else {
+                let firstPlayer = await bot.users.fetch(matchResult[1].slice(2,-1))
+                let secondPlayer = await bot.users.fetch(matchResult[2].slice(2,-1))
+                let firstPlayerRating = db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]
+                let secondPlayerRating = db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]
+                try {
+                    let isError = db.addResultToDatabase(matchResult, message.guildId.toString())
+                    let firstPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]
+                    let secondPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]
+                    let firstPlayerDifference = Math.round(firstPlayerRatingAfter) - Math.round(firstPlayerRating)
+                    let secondPlayerDifference = Math.round(secondPlayerRatingAfter) - Math.round(secondPlayerRating)
+
+
+                    if(!isError) {
+                        let result = matchResult[3].split(/[-:]/)
+                        let embed = new Discord.EmbedBuilder()
+                            .setColor(0xE8A7A1)
+                            .setTitle('Match Result')
+                            .setThumbnail(message.guild.iconURL())
+                            .setTimestamp()
+                            .addFields(
+                                {
+                                    name: firstPlayer.globalName + " -> " + matchResult[3] + " <- " + secondPlayer.globalName,
+                                    value: '\u200b'
+                                }
+                            )
+                            if(result[0] > result[1]) {
+                                embed.addFields(
+                                    {
+                                        name: firstPlayer.globalName + " is on a win streak!",
+                                        value: '\u200b'
+                                    }
+                                )
+                            } else if (result[0] < result[1]) {
+                                embed.addFields(
+                                    {
+                                        name: secondPlayer.globalName + " is on a winning streak!",
+                                        value: '\u200b'
+                                    }
+                                )
+                            }
+                        embed.addFields(
+                            {
+                                name: firstPlayer.globalName,
+                                value: Math.round(firstPlayerRating) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstPlayerRatingAfter),
+                                inline: true
+                            }
+                        )
+                        embed.addFields(
+                            {
+                                name: secondPlayer.globalName,
+                                value: Math.round(secondPlayerRating) + (secondPlayerDifference > 0 ? " + " : " - ") + Math.abs(secondPlayerDifference) + " :arrow_right: " + Math.round(secondPlayerRatingAfter),
+                                inline: true
+                            }
+                        )
+                        await message.reply({embeds: [embed]})
+                    } else {
+                        await message.reply("Oops, im sorry, something went wrong!")
+                    }
+                } catch (exception) {
+                    console.log(exception.message)
+                    await message.reply("Oops, im sorry, something went wrong!")
+                }
+            }
+        }
+
+        if (message.content === "createRankedTable") {
+            if (db.doesDatabaseExist(message.guildId)) {
+                db.createRankedTables(message.guildId)
+                await message.reply("The ranked database has been set up!")
+            } else {
+                await message.reply("The ranked database is already set up.")
+            }
         }
     }
     /*
      * ranked
      */
-
     // TO DO: person specific query
     if (message.content.startsWith("matches")) {
         let messageInfo = message.content.split(" ")
@@ -147,34 +255,18 @@ bot.on("messageCreate", async (message) => {
             })
         }
         await message.reply({embeds: [...embed]})
-
-    }
-    if (message.content.startsWith("result")) {
-        let matchResult = message.content.split(" ")
-        let reply = matchResult.length !== 4 ? "Seems like you didn't add enough parameters!" :
-            !(matchResult[1].startsWith("<@")) || !(matchResult[2].startsWith("<@")) ? "You have to enter two discord accounts, you dummy!" :
-                (matchResult[1] === matchResult[2]) ? "You have to enter two **different** discord accounts, silly. :3" :
-                    !matchResult[3].includes("-") && !matchResult[3].includes(":") ? "It seems like the result was not entered properly. Please try again" :
-                        "The match has been added to the database!"
-        try {
-            db.addResultToDatabase(matchResult, message.guildId.toString())
-            await message.reply(reply)
-        } catch (exception) {
-            console.log(exception.message)
-            await message.reply("Oops, im sorry, something went wrong!")
-        }
     }
     if (message.content.startsWith("stats")) {
         let messageArguments = message.content.split(" ")
         // need to check if message argument is a discord user or not
         let playerID = messageArguments.length === 1 ? "<@" + message.author.id + ">" : messageArguments[1]
-        let player = bot.users.fetch(playerID.slice(2, -1)).then(player => player.avatarURL())
+        let player = await bot.users.fetch(playerID.slice(2, -1)).then(player => player.avatarURL())
         let playerStats = db.getPlayerStats(message.guildId.toString(), playerID)
         let embed = new Discord.EmbedBuilder()
             .setColor(0xE8A7A1)
             .setTitle('Player Stats')
             .setDescription('User: ' + message.author.globalName)
-            .setThumbnail(await player)
+            .setThumbnail(player)
             .setTimestamp()
             .addFields(
                 {
@@ -240,35 +332,11 @@ bot.on("messageCreate", async (message) => {
 
         await message.reply({embeds: [embed]})
     }
-    if (message.content === "createRankedTable") {
-        if (db.doesDatabaseExist(message.guildId)) {
-            db.createRankedTables(message.guildId)
-            await message.reply("The ranked database has been set up!")
-        } else {
-            await message.reply("The ranked database is already set up.")
-        }
-    }
     /*
      * debug
      */
     if (message.content.startsWith("message")) {
         const channel = bot.channels.cache.get(message.channelId)
-        // const exampleEmbed = new Discord.EmbedBuilder()
-        //     .setColor(0xE8A7A1)
-        //     .setTitle('Some title')
-        //     .setDescription('Some description here')
-        //     .setThumbnail('https://i.imgur.com/AfFp7pu.png')
-        //     .addFields(
-        //         {name: 'Regular field title', value: 'Some value here'},
-        //         {name: '\u200B', value: '\u200B'},
-        //         {name: 'Inline field title', value: 'Some value here', inline: true},
-        //         {name: 'Inline field title', value: 'Some value here', inline: true},
-        //     )
-        //     .addFields({name: 'Inline field title', value: 'Some value here', inline: true})
-        //     .setImage('https://i.imgur.com/AfFp7pu.png')
-        //     .setTimestamp()
-        //     .setFooter({text: 'Some footer text here', iconURL: 'https://i.imgur.com/AfFp7pu.png'});
-        // channel.send("This is the " + channel.name + " channel")
         await channel.send("<@" + message.author.id + ">")
         console.log(message.author.id)
     }

@@ -82,15 +82,16 @@ function updateServerReactionActivation(serverID, reactions) {
 function addResultToDatabase(matchResult, serverID) {
     let firstPlayer = matchResult[1]
     let secondPlayer = matchResult[2]
-    let [scoreFirstPlayer, scoreSecondPlayer] =
-        matchResult[3].includes("-") ? matchResult[3].split("-")
-            : matchResult[3].includes("-") ? matchResult[3].split(":")
-                : ["wrong", "wrong"]
+    let [scoreFirstPlayer, scoreSecondPlayer] = matchResult[3].split(/[-:]/)
+    if(isNaN(scoreFirstPlayer) || isNaN(scoreSecondPlayer)) {
+        return true
+    }
     let winner = +scoreFirstPlayer < +scoreSecondPlayer ? secondPlayer : +scoreFirstPlayer > +scoreSecondPlayer ? firstPlayer : "Tie"
     let tableName = "matches_" + serverID
     let sql = "INSERT INTO " + tableName + "(id,first_player,second_player,score_first_player,score_second_player,winner) VALUES (?,?,?,?,?,?)"
     database.prepare(sql).run(getTableCount(tableName) + 1, matchResult[1], matchResult[2], scoreFirstPlayer, scoreSecondPlayer, winner)
     updateStatsDatabase(firstPlayer, secondPlayer, scoreFirstPlayer, scoreSecondPlayer, serverID)
+    return false
 }
 
 function doesDatabaseExist(tableName) {
