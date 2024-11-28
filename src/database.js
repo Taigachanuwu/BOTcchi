@@ -18,8 +18,11 @@ function createPlayerEntry(player, serverID){
     return database.prepare(sql).get(player)
 }
 function createReactionsEntry(channelID, serverID) {
-    let sql = "INSERT OR IGNORE INTO reactions VALUES(?,?,false)"
-    database.prepare(sql).run(channelID,serverID)
+    let statement = "SELECT * FROM reactions WHERE channel_id = ?"
+    if (!database.prepare(statement).get(channelID)) {
+        let sql = "INSERT INTO reactions VALUES(?,?,false)"
+        database.prepare(sql).run(channelID,serverID)
+    }
 }
 function getMatchHistory(serverID, entries) {
     let tableName = "matches_" + serverID
