@@ -1,5 +1,6 @@
+require("dotenv").config()
 const ranked = require("./ranked");
-const database = require("better-sqlite3")('D:\\discord-bot\\src\\databanks\\test.db')
+const database = require("better-sqlite3")(process.env.FILE_PATH)
 
 function createRankedTables(serverName){
     let tableName = "matches_" + serverName
