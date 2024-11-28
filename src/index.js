@@ -65,6 +65,7 @@ bot.on("ready", (c) => {
 
 bot.on("guildCreate", (c) => {
     console.log("Joined " + c.name)
+    getChannelIds().then(channels => channels.forEach(channel => createReactionsEntry(channel[0], channel[1])))
 })
 
 bot.on("messageCreate", async (message) => {
