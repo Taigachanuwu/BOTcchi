@@ -73,33 +73,33 @@ bot.on("messageCreate", async (message) => {
 
     if(response) {
         if(message.content.includes("Bingo")) {
-            message.reply({files: [{attachment: "assets\\gojo-bingo.gif", name: "getBingoed.gif"}]})
+            message.reply({files: [{attachment: "assets/gojo-bingo.gif", name: "getBingoed.gif"}]})
         }
         if(message.content.includes("cock")) {
-            message.reply({files: [{attachment: "assets\\cockbending.png", name: "cockbending.jpg"}]})
+            message.reply({files: [{attachment: "assets/cockbending.png", name: "cockbending.jpg"}]})
         }
         if(message.content.includes("prince of all saiyans")) {
-            message.reply({files: [{attachment: "assets\\princeofallsaiyans.mp4", name: "video.mp4"}]})
+            message.reply({files: [{attachment: "assets/princeofallsaiyans.mp4", name: "video.mp4"}]})
         }
         if(message.content.toLowerCase().includes("awesome fucking tien edit")) {
-            message.reply({files: [{attachment: "assets\\coolTienEdit.mp4", name: "video.mp4"}]})
+            message.reply({files: [{attachment: "assets/coolTienEdit.mp4", name: "video.mp4"}]})
         }
         if(message.content.includes("goku")) {
             let image = [
-                "assets\\gokucircles\\7fe.jpg",
-                "assets\\gokucircles\\9c9.jpg",
-                "assets\\gokucircles\\img.png",
-                "assets\\gokucircles\\img_1.png",
-                "assets\\gokucircles\\niko-from-dragon-ball-z-v0-vemp5dgmo73e1.webp",
+                "assets/gokucircles/7fe.jpg",
+                "assets/gokucircles/9c9.jpg",
+                "assets/gokucircles/img.png",
+                "assets/gokucircles/img_1.png",
+                "assets/gokucircles/niko-from-dragon-ball-z-v0-vemp5dgmo73e1.webp",
             ]
             message.reply({files: [{attachment: image[Math.floor(Math.random() * image.length)], name: "image.png"}]})
         }
         if(message.content.includes("the drink")) {
             let clip = [
-                "assets\\thedrink\\the_cup.mov",
-                "assets\\thedrink\\they_call_him_the_what.mov",
-                "assets\\thedrink\\u_think.mov",
-                "assets\\thedrink\\the_cup.mov",
+                "assets/thedrink/the_cup.mov",
+                "assets/thedrink/they_call_him_the_what.mov",
+                "assets/thedrink/u_think.mov",
+                "assets/thedrink/the_cup.mov",
             ]
             message.reply({files: [{attachment: clip[Math.floor(Math.random() * clip.length)], name: "video.mp4"}]})
         }
