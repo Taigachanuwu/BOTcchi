@@ -135,7 +135,7 @@ bot.on("ready", (c) => {
             name: randomStatus,
             type: Discord.ActivityType.Custom
         });
-    }, 60000);
+    }, 5 * 60 * 1000);
 })
 
 bot.on("guildCreate", (c) => {
@@ -443,7 +443,6 @@ bot.on("messageCreate", async (message) => {
             } else {
                 await message.reply("You cant join the queue twice")
             }
-            console.log(queue)
         }
         if (message.content === "queue check") {
             if (!queue[message.guildId]) {
@@ -478,13 +477,13 @@ bot.on("messageCreate", async (message) => {
                         },
                         {
                             name: "Message:",
-                            value: player.message,
+                            value: player.message ? player.message : "\u200b",
                             inline: true
                         }
                     )
                 )
             }
-            message.reply({embeds: [...embeds]})
+            await message.reply({embeds: [...embeds]})
         }
         if (message.content.startsWith("queue match")) {
             if (!queue[message.guildId]) {
@@ -503,15 +502,22 @@ bot.on("messageCreate", async (message) => {
             } else if (!joinedPlayers.includes(player)) {
                 await message.reply("That player is not currently in the Matchmaking queue")
             } else {
-                let reply = await message.channel.send(message.author.displayName + " has sent you a match request. Do you want to accept?")
+                let reply = await player.send(message.author.displayName + " has sent you a match request. Do you want to accept?")
                 await reply.react("✅")
                 await reply.react("❌")
                 const filter = (reaction) => {
-                    return !!reaction
+                    return reaction.emoji.name === "✅" || reaction.emoji.name === "❌"
                 }
-                const collector = message.createReactionCollector({filter, max: 1, time: 7000});
-                collector.on('collect', r => console.log(`Collected ${r.emoji.name}`));
-                collector.on('end', collected => console.log(`Collected ${collected.size} items`));
+                const collector = reply.createReactionCollector({filter, max: 1});
+                collector.on('collect', r => {
+                    if(r.emoji.name === "✅") {
+                        message.author.send(`${player.displayName} accepted your match request. Send them a DM to make the match happen.`)
+                        queue[message.guildId] = queue[message.guildId].filter((queue) => queue !== player)
+
+                    } else {
+                        message.author.send(`${player.displayName} did not accept your match request.`)
+                    }
+                })
             }
         }
         if (message.content === "queue leave") {
