@@ -1,7 +1,12 @@
 require("dotenv").config()
 const db = require("./database.js")
-const Discord= require("discord.js")
-const {createReactionsEntry, isReactionActivated, updateReactionActivation, updateServerReactionActivation} = require("./database");
+const Discord = require("discord.js")
+const {
+    createReactionsEntry,
+    isReactionActivated,
+    updateReactionActivation,
+    updateServerReactionActivation
+} = require("./database");
 const bot = new Discord.Client({
     intents: [
         Discord.IntentsBitField.Flags.Guilds,
@@ -11,7 +16,6 @@ const bot = new Discord.Client({
         Discord.IntentsBitField.Flags.GuildMessageReactions,
         Discord.IntentsBitField.Flags.DirectMessageReactions
     ],
-
 })
 // create prefix database for changeability
 let prefix = "!"
@@ -96,6 +100,7 @@ async function getChannelIds() {
     channels = channels.map(guild => guild.map(channel => [channel.id, channel.guildId])).flat()
     return channels
 }
+
 function isAdmin(msg) {
     try {
         return msg.member.permissionsIn(msg.channel).has(Discord.PermissionsBitField.Flags.Administrator)
@@ -103,6 +108,7 @@ function isAdmin(msg) {
         return false
     }
 }
+
 function buildHelpPage(message, value, key) {
     let page = new Discord.EmbedBuilder()
         .setTitle(`Commands: ${key}`)
@@ -110,7 +116,7 @@ function buildHelpPage(message, value, key) {
         .setThumbnail(message.guild.iconURL())
         .setTimestamp()
     for (const [innerKey, innerValue] of Object.entries(value)) {
-        if(isAdmin(message) || innerValue.permissions !== "admin") {
+        if (isAdmin(message) || innerValue.permissions !== "admin") {
             page.addFields({
                 name: innerValue.name,
                 value: innerValue.description
@@ -144,24 +150,24 @@ bot.on("channelCreate", (c) => {
 
 bot.on("messageCreate", async (message) => {
     try {
-        if(message.author.bot) {
+        if (message.author.bot) {
             return
         }
         let response = isReactionActivated(message.channelId)
-        if(response) {
-            if(message.content.includes("Bingo")) {
+        if (response) {
+            if (message.content.includes("Bingo")) {
                 message.reply({files: [{attachment: "assets/gojo-bingo.gif", name: "getBingoed.gif"}]})
             }
-            if(message.content.includes("cock")) {
+            if (message.content.includes("cock")) {
                 message.reply({files: [{attachment: "assets/cockbending.png", name: "cockbending.jpg"}]})
             }
-            if(message.content.includes("prince of all saiyans")) {
+            if (message.content.includes("prince of all saiyans")) {
                 message.reply({files: [{attachment: "assets/princeofallsaiyans.mp4", name: "video.mp4"}]})
             }
-            if(message.content.toLowerCase().includes("awesome fucking tien edit")) {
+            if (message.content.toLowerCase().includes("awesome fucking tien edit")) {
                 message.reply({files: [{attachment: "assets/coolTienEdit.mp4", name: "video.mp4"}]})
             }
-            if(message.content.includes("goku")) {
+            if (message.content.includes("goku")) {
                 let image = [
                     "assets/gokucircles/7fe.jpg",
                     "assets/gokucircles/9c9.jpg",
@@ -169,9 +175,14 @@ bot.on("messageCreate", async (message) => {
                     "assets/gokucircles/img_1.png",
                     "assets/gokucircles/niko-from-dragon-ball-z-v0-vemp5dgmo73e1.webp",
                 ]
-                message.reply({files: [{attachment: image[Math.floor(Math.random() * image.length)], name: "image.png"}]})
+                message.reply({
+                    files: [{
+                        attachment: image[Math.floor(Math.random() * image.length)],
+                        name: "image.png"
+                    }]
+                })
             }
-            if(message.content.includes("the drink")) {
+            if (message.content.includes("the drink")) {
                 let clip = [
                     "assets/thedrink/the_cup.mov",
                     "assets/thedrink/they_call_him_the_what.mov",
@@ -181,7 +192,6 @@ bot.on("messageCreate", async (message) => {
                 message.reply({files: [{attachment: clip[Math.floor(Math.random() * clip.length)], name: "video.mp4"}]})
             }
         }
-
         if (message.content.startsWith(prefix)) {
             message.content = message.content.substring(1)
         }
@@ -189,13 +199,17 @@ bot.on("messageCreate", async (message) => {
          * basic functionality
          */
         if (message.content === "reactions") {
-            if(!isAdmin(message)) {return}
+            if (!isAdmin(message)) {
+                return
+            }
             response = !response
             updateReactionActivation(message.channelId, response)
             message.reply("T-The reactions are turned to " + response.toString() + "!")
         }
         if (message.content === "reactions server") {
-            if(!isAdmin(message)) {return}
+            if (!isAdmin(message)) {
+                return
+            }
             response = !response
             updateServerReactionActivation(message.guildId, response)
             message.reply("T-The reactions for the whole server are turned to " + response.toString() + "!")
@@ -213,20 +227,20 @@ bot.on("messageCreate", async (message) => {
         //         message.reply("T-The prefix was successfully changed!!")
         //     }
         // }
-        if(message.content.startsWith("avatar")) {
+        if (message.content.startsWith("avatar")) {
             let userID = message.content.split(" ")[1].slice(2, -1)
             let user = await bot.users.fetch(userID).then((user) => user.displayAvatarURL({size: 4096}))
             await message.reply(user)
         }
-        if(message.content.startsWith("help")) {
+        if (message.content.startsWith("help")) {
             let parameter = message.content.substring(4).trim()
             let embed = []
             for (const [key, value] of Object.entries(commandsHelp)) {
-                if(!parameter || key === parameter){
+                if (!parameter || key === parameter) {
                     embed.push(buildHelpPage(message, value, key))
                 }
             }
-            if(embed.length !== 0) {
+            if (embed.length !== 0) {
                 await message.author.send({embeds: embed})
             } else {
                 message.reply("Thats not a valid category")
@@ -236,32 +250,34 @@ bot.on("messageCreate", async (message) => {
          * ranked
          */
         if (message.content.startsWith("result")) {
-            if(!isAdmin(message)) {return}
+            if (!isAdmin(message)) {
+                return
+            }
             let matchResult = message.content.split(" ")
-            if(matchResult.length !== 4) {
+            if (matchResult.length !== 4) {
                 await message.reply("Seems like you didn't add enough parameters!")
                 return
             }
-            if(!matchResult[1].startsWith("<@") || !matchResult[2].startsWith("<@")) {
+            if (!matchResult[1].startsWith("<@") || !matchResult[2].startsWith("<@")) {
                 await message.reply("You have to enter two discord accounts, you dummy!")
                 return
             }
-            if(matchResult[1] === matchResult[2]) {
+            if (matchResult[1] === matchResult[2]) {
                 await message.reply("You have to enter two **different** discord accounts, silly. :3")
                 return
             }
-            if(!matchResult[3].includes("-") && !matchResult[3].includes(":")) {
+            if (!matchResult[3].includes("-") && !matchResult[3].includes(":")) {
                 await message.reply("It seems like the result was not entered properly. Please try again")
                 return
             }
-            let [firstPlayer, firstPlayerRating] = [await bot.users.fetch(matchResult[1].slice(2,-1)), db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]]
-            let [secondPlayer, secondPlayerRating] = [await bot.users.fetch(matchResult[2].slice(2,-1)), db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]]
+            let [firstPlayer, firstPlayerRating] = [await bot.users.fetch(matchResult[1].slice(2, -1)), db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]]
+            let [secondPlayer, secondPlayerRating] = [await bot.users.fetch(matchResult[2].slice(2, -1)), db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]]
             let isError = db.addResultToDatabase(matchResult, message.guildId.toString())
             let firstPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]
             let secondPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]
             let firstPlayerDifference = Math.round(firstPlayerRatingAfter) - Math.round(firstPlayerRating)
             let secondPlayerDifference = Math.round(secondPlayerRatingAfter) - Math.round(secondPlayerRating)
-            if(isError) {
+            if (isError) {
                 await message.reply("Oops, im sorry, something went wrong!")
                 return
             }
@@ -277,7 +293,7 @@ bot.on("messageCreate", async (message) => {
                         value: '\u200b'
                     }
                 )
-            if(result[0] !== result[1]) {
+            if (result[0] !== result[1]) {
                 embed.addFields(
                     {
                         name: (result[0] < result[1] ? secondPlayer.globalName : firstPlayer.globalName) + " is on a winning streak!",
@@ -302,7 +318,9 @@ bot.on("messageCreate", async (message) => {
             await message.reply({embeds: [embed]})
         }
         if (message.content === "createRankedTable") {
-            if (!isAdmin(message)) {return}
+            if (!isAdmin(message)) {
+                return
+            }
             if (db.doesDatabaseExist(message.guildId)) {
                 db.createRankedTables(message.guildId)
                 await message.reply("The ranked database has been set up!")
@@ -410,8 +428,8 @@ bot.on("messageCreate", async (message) => {
 
             await message.reply({embeds: [embed]})
         }
-        if(message.content.startsWith("queue join")) {
-            if(!queue[message.guildId]) {
+        if (message.content.startsWith("queue join")) {
+            if (!queue[message.guildId]) {
                 queue[message.guildId] = []
             }
             let player = {
@@ -419,7 +437,7 @@ bot.on("messageCreate", async (message) => {
                 message: message.content.substring(10)
             }
             let joinedPlayers = queue[message.guildId].map((player) => player.name)
-            if(!joinedPlayers.includes(player.name)) {
+            if (!joinedPlayers.includes(player.name)) {
                 queue[message.guildId].push(player)
                 await message.react("✅")
             } else {
@@ -427,12 +445,12 @@ bot.on("messageCreate", async (message) => {
             }
             console.log(queue)
         }
-        if(message.content === "queue check") {
-            if(!queue[message.guildId]) {
+        if (message.content === "queue check") {
+            if (!queue[message.guildId]) {
                 queue[message.guildId] = []
             }
             let embeds = []
-            if(queue[message.guildId].length === 0) {
+            if (queue[message.guildId].length === 0) {
                 embeds = [
                     new Discord.EmbedBuilder()
                         .setColor(0xE8A7A1)
@@ -440,11 +458,11 @@ bot.on("messageCreate", async (message) => {
                         .setThumbnail(message.guild.iconURL())
                         .setTimestamp()
                         .addFields(
-                        {
-                            name: "No one joined the queue",
-                            value: "Join the queue by typing '!queue join'!"
-                        }
-                    )
+                            {
+                                name: "No one joined the queue",
+                                value: "Join the queue by typing '!queue join'!"
+                            }
+                        )
                 ]
             } else {
                 embeds = queue[message.guildId].map((player) => new Discord.EmbedBuilder()
@@ -468,15 +486,15 @@ bot.on("messageCreate", async (message) => {
             }
             message.reply({embeds: [...embeds]})
         }
-        if(message.content.startsWith("queue match")) {
-            if(!queue[message.guildId]) {
+        if (message.content.startsWith("queue match")) {
+            if (!queue[message.guildId]) {
                 queue[message.guildId] = []
             }
             let joinedPlayers = queue[message.guildId].map((player) => player.name)
             let player
 
             try {
-                player = await bot.users.fetch(message.content.substring(11).trim().slice(2,-1))
+                player = await bot.users.fetch(message.content.substring(11).trim().slice(2, -1))
             } catch {
                 player = null
             }
@@ -491,17 +509,17 @@ bot.on("messageCreate", async (message) => {
                 const filter = (reaction) => {
                     return !!reaction
                 }
-                const collector = message.createReactionCollector({ filter, max: 1, time: 7000 });
+                const collector = message.createReactionCollector({filter, max: 1, time: 7000});
                 collector.on('collect', r => console.log(`Collected ${r.emoji.name}`));
                 collector.on('end', collected => console.log(`Collected ${collected.size} items`));
             }
         }
-        if(message.content === "queue leave") {
-            if(!queue[message.guildId]) {
+        if (message.content === "queue leave") {
+            if (!queue[message.guildId]) {
                 queue[message.guildId] = []
             }
             let joinedPlayers = queue[message.guildId].map((player) => player.name)
-            if(joinedPlayers.includes(message.author)) {
+            if (joinedPlayers.includes(message.author)) {
                 queue[message.guildId] = queue[message.guildId].filter((player) => player.name !== message.author)
                 await message.react("✅")
             } else {
