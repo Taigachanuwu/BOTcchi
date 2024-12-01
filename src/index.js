@@ -185,124 +185,34 @@ bot.on("messageCreate", async (message) => {
         if (message.content.startsWith(prefix)) {
             message.content = message.content.substring(1)
         }
-        if(isAdmin(message)) {
-            /*
-             * basic functionality
-             */
-            if (message.content === "reactions") {
-                response = !response
-                updateReactionActivation(message.channelId, response)
-                message.reply("T-The reactions are turned to " + response.toString() + "!")
-            }
-            if (message.content === "reactions server") {
-                response = !response
-                updateServerReactionActivation(message.guildId, response)
-                message.reply("T-The reactions for the whole server are turned to " + response.toString() + "!")
-            }
-            // TO DO: add table for server prefix
-
-            // if (message.content.startsWith("changePrefix")) {
-            //     let parts = message.content.split(" ")
-            //     if (!parts[1]) {
-            //         message.reply("P-Please enter a symbol...")
-            //     } else if (parts[1].length > 2) {
-            //         message.reply("T-The prefix cant be longer than two characters..")
-            //     } else {
-            //         prefix = parts[1]
-            //         message.reply("T-The prefix was successfully changed!!")
-            //     }
-            // }
-            /*
-             * ranked
-             */
-            if (message.content.startsWith("result")) {
-                let matchResult = message.content.split(" ")
-                if(matchResult.length !== 4) {
-                    await message.reply("Seems like you didn't add enough parameters!")
-                } else if(!(matchResult[1].startsWith("<@")) || !(matchResult[2].startsWith("<@"))) {
-                    await message.reply("You have to enter two discord accounts, you dummy!")
-                } else if(matchResult[1] === matchResult[2]) {
-                    await message.reply("You have to enter two **different** discord accounts, silly. :3")
-                } else if(!matchResult[3].includes("-") && !matchResult[3].includes(":")) {
-                    await message.reply("It seems like the result was not entered properly. Please try again")
-                } else {
-                    let firstPlayer = await bot.users.fetch(matchResult[1].slice(2,-1))
-                    let secondPlayer = await bot.users.fetch(matchResult[2].slice(2,-1))
-                    let firstPlayerRating = db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]
-                    let secondPlayerRating = db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]
-                    try {
-                        let isError = db.addResultToDatabase(matchResult, message.guildId.toString())
-                        let firstPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]
-                        let secondPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]
-                        let firstPlayerDifference = Math.round(firstPlayerRatingAfter) - Math.round(firstPlayerRating)
-                        let secondPlayerDifference = Math.round(secondPlayerRatingAfter) - Math.round(secondPlayerRating)
-
-
-                        if(!isError) {
-                            let result = matchResult[3].split(/[-:]/)
-                            let embed = new Discord.EmbedBuilder()
-                                .setColor(0xE8A7A1)
-                                .setTitle('Match Result')
-                                .setThumbnail(message.guild.iconURL())
-                                .setTimestamp()
-                                .addFields(
-                                    {
-                                        name: firstPlayer.globalName + " -> " + matchResult[3] + " <- " + secondPlayer.globalName,
-                                        value: '\u200b'
-                                    }
-                                )
-                            if(result[0] > result[1]) {
-                                embed.addFields(
-                                    {
-                                        name: firstPlayer.globalName + " is on a win streak!",
-                                        value: '\u200b'
-                                    }
-                                )
-                            } else if (result[0] < result[1]) {
-                                embed.addFields(
-                                    {
-                                        name: secondPlayer.globalName + " is on a winning streak!",
-                                        value: '\u200b'
-                                    }
-                                )
-                            }
-                            embed.addFields(
-                                {
-                                    name: firstPlayer.globalName,
-                                    value: Math.round(firstPlayerRating) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstPlayerRatingAfter),
-                                    inline: true
-                                }
-                            )
-                            embed.addFields(
-                                {
-                                    name: secondPlayer.globalName,
-                                    value: Math.round(secondPlayerRating) + (secondPlayerDifference > 0 ? " + " : " - ") + Math.abs(secondPlayerDifference) + " :arrow_right: " + Math.round(secondPlayerRatingAfter),
-                                    inline: true
-                                }
-                            )
-                            await message.reply({embeds: [embed]})
-                        } else {
-                            await message.reply("Oops, im sorry, something went wrong!")
-                        }
-                    } catch (exception) {
-                        console.log(exception.message)
-                        await message.reply("Oops, im sorry, something went wrong!")
-                    }
-                }
-            }
-
-            if (message.content === "createRankedTable") {
-                if (db.doesDatabaseExist(message.guildId)) {
-                    db.createRankedTables(message.guildId)
-                    await message.reply("The ranked database has been set up!")
-                } else {
-                    await message.reply("The ranked database is already set up.")
-                }
-            }
-        }
         /*
          * basic functionality
          */
+        if (message.content === "reactions") {
+            if(!isAdmin(message)) {return}
+            response = !response
+            updateReactionActivation(message.channelId, response)
+            message.reply("T-The reactions are turned to " + response.toString() + "!")
+        }
+        if (message.content === "reactions server") {
+            if(!isAdmin(message)) {return}
+            response = !response
+            updateServerReactionActivation(message.guildId, response)
+            message.reply("T-The reactions for the whole server are turned to " + response.toString() + "!")
+        }
+        // TO DO: add table for server prefix
+        // if (message.content.startsWith("changePrefix")) {
+        //     if(!isAdmin(message)) {return}
+        //     let parts = message.content.split(" ")
+        //     if (!parts[1]) {
+        //         message.reply("P-Please enter a symbol...")
+        //     } else if (parts[1].length > 2) {
+        //         message.reply("T-The prefix cant be longer than two characters..")
+        //     } else {
+        //         prefix = parts[1]
+        //         message.reply("T-The prefix was successfully changed!!")
+        //     }
+        // }
         if(message.content.startsWith("avatar")) {
             let userID = message.content.split(" ")[1].slice(2, -1)
             let user = await bot.users.fetch(userID).then((user) => user.displayAvatarURL({size: 4096}))
@@ -325,6 +235,81 @@ bot.on("messageCreate", async (message) => {
         /*
          * ranked
          */
+        if (message.content.startsWith("result")) {
+            if(!isAdmin(message)) {return}
+            let matchResult = message.content.split(" ")
+            if(matchResult.length !== 4) {
+                await message.reply("Seems like you didn't add enough parameters!")
+                return
+            }
+            if(!matchResult[1].startsWith("<@") || !matchResult[2].startsWith("<@")) {
+                await message.reply("You have to enter two discord accounts, you dummy!")
+                return
+            }
+            if(matchResult[1] === matchResult[2]) {
+                await message.reply("You have to enter two **different** discord accounts, silly. :3")
+                return
+            }
+            if(!matchResult[3].includes("-") && !matchResult[3].includes(":")) {
+                await message.reply("It seems like the result was not entered properly. Please try again")
+                return
+            }
+            let [firstPlayer, firstPlayerRating] = [await bot.users.fetch(matchResult[1].slice(2,-1)), db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]]
+            let [secondPlayer, secondPlayerRating] = [await bot.users.fetch(matchResult[2].slice(2,-1)), db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]]
+            let isError = db.addResultToDatabase(matchResult, message.guildId.toString())
+            let firstPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]
+            let secondPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]
+            let firstPlayerDifference = Math.round(firstPlayerRatingAfter) - Math.round(firstPlayerRating)
+            let secondPlayerDifference = Math.round(secondPlayerRatingAfter) - Math.round(secondPlayerRating)
+            if(isError) {
+                await message.reply("Oops, im sorry, something went wrong!")
+                return
+            }
+            let result = matchResult[3].split(/[-:]/)
+            let embed = new Discord.EmbedBuilder()
+                .setColor(0xE8A7A1)
+                .setTitle('Match Result')
+                .setThumbnail(message.guild.iconURL())
+                .setTimestamp()
+                .addFields(
+                    {
+                        name: firstPlayer.globalName + " -> " + matchResult[3] + " <- " + secondPlayer.globalName,
+                        value: '\u200b'
+                    }
+                )
+            if(result[0] !== result[1]) {
+                embed.addFields(
+                    {
+                        name: (result[0] < result[1] ? secondPlayer.globalName : firstPlayer.globalName) + " is on a winning streak!",
+                        value: '\u200b'
+                    }
+                )
+            }
+            embed.addFields(
+                {
+                    name: firstPlayer.globalName,
+                    value: Math.round(firstPlayerRating) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstPlayerRatingAfter),
+                    inline: true
+                }
+            )
+            embed.addFields(
+                {
+                    name: secondPlayer.globalName,
+                    value: Math.round(secondPlayerRating) + (secondPlayerDifference > 0 ? " + " : " - ") + Math.abs(secondPlayerDifference) + " :arrow_right: " + Math.round(secondPlayerRatingAfter),
+                    inline: true
+                }
+            )
+            await message.reply({embeds: [embed]})
+        }
+        if (message.content === "createRankedTable") {
+            if (!isAdmin(message)) {return}
+            if (db.doesDatabaseExist(message.guildId)) {
+                db.createRankedTables(message.guildId)
+                await message.reply("The ranked database has been set up!")
+            } else {
+                await message.reply("The ranked database is already set up.")
+            }
+        }
         // TO DO: person specific query
         if (message.content.startsWith("matches")) {
             let messageInfo = message.content.split(" ")
