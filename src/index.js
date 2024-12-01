@@ -15,7 +15,7 @@ const bot = new Discord.Client({
     ],
 })
 // create prefix database for changeability
-let prefix = "_"
+let prefix = "!"
 let queue = {}
 let statuses = [
     "The One Piece is real!",
