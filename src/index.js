@@ -2,10 +2,7 @@ require("dotenv").config()
 const db = require("./database.js")
 const Discord = require("discord.js")
 const {
-    createReactionsEntry,
-    isReactionActivated,
-    updateReactionActivation,
-    updateServerReactionActivation
+    createReactionsEntry, isReactionActivated, updateReactionActivation, updateServerReactionActivation
 } = require("./database");
 const bot = new Discord.Client({
     intents: [
@@ -18,7 +15,7 @@ const bot = new Discord.Client({
     ],
 })
 // create prefix database for changeability
-let prefix = "!"
+let prefix = "_"
 let queue = {}
 let statuses = [
     "The One Piece is real!",
@@ -287,34 +284,26 @@ bot.on("messageCreate", async (message) => {
                 .setTitle('Match Result')
                 .setThumbnail(message.guild.iconURL())
                 .setTimestamp()
-                .addFields(
-                    {
-                        name: firstPlayer.globalName + " -> " + matchResult[3] + " <- " + secondPlayer.globalName,
-                        value: '\u200b'
-                    }
-                )
+                .addFields({
+                    name: firstPlayer.globalName + " -> " + matchResult[3] + " <- " + secondPlayer.globalName,
+                    value: '\u200b'
+                })
             if (result[0] !== result[1]) {
-                embed.addFields(
-                    {
-                        name: (result[0] < result[1] ? secondPlayer.globalName : firstPlayer.globalName) + " is on a winning streak!",
-                        value: '\u200b'
-                    }
-                )
+                embed.addFields({
+                    name: (result[0] < result[1] ? secondPlayer.globalName : firstPlayer.globalName) + " is on a winning streak!",
+                    value: '\u200b'
+                })
             }
-            embed.addFields(
-                {
-                    name: firstPlayer.globalName,
-                    value: Math.round(firstPlayerRating) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstPlayerRatingAfter),
-                    inline: true
-                }
-            )
-            embed.addFields(
-                {
-                    name: secondPlayer.globalName,
-                    value: Math.round(secondPlayerRating) + (secondPlayerDifference > 0 ? " + " : " - ") + Math.abs(secondPlayerDifference) + " :arrow_right: " + Math.round(secondPlayerRatingAfter),
-                    inline: true
-                }
-            )
+            embed.addFields({
+                name: firstPlayer.globalName,
+                value: Math.round(firstPlayerRating) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstPlayerRatingAfter),
+                inline: true
+            })
+            embed.addFields({
+                name: secondPlayer.globalName,
+                value: Math.round(secondPlayerRating) + (secondPlayerDifference > 0 ? " + " : " - ") + Math.abs(secondPlayerDifference) + " :arrow_right: " + Math.round(secondPlayerRatingAfter),
+                inline: true
+            })
             await message.reply({embeds: [embed]})
         }
         if (message.content === "createRankedTable") {
@@ -364,67 +353,37 @@ bot.on("messageCreate", async (message) => {
                 .setDescription('User: ' + message.author.globalName)
                 .setThumbnail(player)
                 .setTimestamp()
-                .addFields(
-                    {
-                        name: "Match Rating",
-                        value: Math.round(playerStats["current_rating"]).toString(),
-                        inline: true
-                    },
-                    {
-                        name: "Highest MR",
-                        value: Math.round(playerStats["max_rating"]).toString(),
-                        inline: true
-                    },
-                    {
-                        name: "Lowest MR",
-                        value: Math.round(playerStats["min_rating"]).toString(),
-                        inline: true
-                    },
-                    {
-                        name: "Victories",
-                        value: playerStats["wins"].toString(),
-                        inline: true
-                    },
-                    {
-                        name: "Defeats",
-                        value: playerStats["losses"].toString(),
-                        inline: true
-                    },
-                    {
-                        name: "Winrate",
-                        value: Math.round((+playerStats["wins"] / +playerStats["total_matches"]) * 100) + " %",
-                        inline: true
-                    },
-                    {
-                        name: "Rounds won",
-                        value: playerStats["won_games"].toString(),
-                        inline: true
-                    },
-                    {
-                        name: "Rounds lost",
-                        value: playerStats["lost_games"].toString(),
-                        inline: true
-                    },
-                    {
-                        name: "Round winrate",
-                        value: Math.round((+playerStats["won_games"] / (+playerStats["won_games"] + +playerStats["lost_games"])) * 100) + " %",
-                        inline: true
-                    },
-                    {
-                        name: "Total games",
-                        value: (+playerStats["won_games"] + +playerStats["lost_games"]).toString(),
-                        inline: true
-                    },
-                    {
-                        name: "Streak",
-                        value: playerStats["current_streak"].toString(),
-                        inline: true
-                    },
-                    {
-                        name: "Highest streak",
-                        value: playerStats["best_streak"].toString(),
-                        inline: true
-                    },)
+                .addFields({
+                    name: "Match Rating", value: Math.round(playerStats["current_rating"]).toString(), inline: true
+                }, {
+                    name: "Highest MR", value: Math.round(playerStats["max_rating"]).toString(), inline: true
+                }, {
+                    name: "Lowest MR", value: Math.round(playerStats["min_rating"]).toString(), inline: true
+                }, {
+                    name: "Victories", value: playerStats["wins"].toString(), inline: true
+                }, {
+                    name: "Defeats", value: playerStats["losses"].toString(), inline: true
+                }, {
+                    name: "Winrate",
+                    value: Math.round((+playerStats["wins"] / +playerStats["total_matches"]) * 100) + " %",
+                    inline: true
+                }, {
+                    name: "Rounds won", value: playerStats["won_games"].toString(), inline: true
+                }, {
+                    name: "Rounds lost", value: playerStats["lost_games"].toString(), inline: true
+                }, {
+                    name: "Round winrate",
+                    value: Math.round((+playerStats["won_games"] / (+playerStats["won_games"] + +playerStats["lost_games"])) * 100) + " %",
+                    inline: true
+                }, {
+                    name: "Total games",
+                    value: (+playerStats["won_games"] + +playerStats["lost_games"]).toString(),
+                    inline: true
+                }, {
+                    name: "Streak", value: playerStats["current_streak"].toString(), inline: true
+                }, {
+                    name: "Highest streak", value: playerStats["best_streak"].toString(), inline: true
+                },)
 
             await message.reply({embeds: [embed]})
         }
@@ -456,12 +415,10 @@ bot.on("messageCreate", async (message) => {
                         .setTitle('Matchmaking Queue')
                         .setThumbnail(message.guild.iconURL())
                         .setTimestamp()
-                        .addFields(
-                            {
-                                name: "No one joined the queue",
-                                value: "Join the queue by typing '!queue join'!"
-                            }
-                        )
+                        .addFields({
+                            name: "No one joined the queue",
+                            value: "Join the queue by typing '!queue join'!"
+                        })
                 ]
             } else {
                 embeds = queue[message.guildId].map((player) => new Discord.EmbedBuilder()
@@ -469,19 +426,11 @@ bot.on("messageCreate", async (message) => {
                     .setTitle('Matchmaking Queue')
                     .setThumbnail(message.guild.iconURL())
                     .setTimestamp()
-                    .addFields(
-                        {
-                            name: "Player:",
-                            value: "<@" + player.name.id + ">",
-                            inline: true
-                        },
-                        {
-                            name: "Message:",
-                            value: player.message ? player.message : "\u200b",
-                            inline: true
-                        }
-                    )
-                )
+                    .addFields({
+                        name: "Player:", value: "<@" + player.name.id + ">", inline: true
+                    }, {
+                        name: "Message:", value: player.message ? player.message : "\u200b", inline: true
+                    }))
             }
             await message.reply({embeds: [...embeds]})
         }
@@ -510,7 +459,7 @@ bot.on("messageCreate", async (message) => {
                 }
                 const collector = reply.createReactionCollector({filter, max: 1});
                 collector.on('collect', r => {
-                    if(r.emoji.name === "✅") {
+                    if (r.emoji.name === "✅") {
                         message.author.send(`${player.displayName} accepted your match request. Send them a DM to make the match happen.`)
                         queue[message.guildId] = queue[message.guildId].filter((queue) => queue !== player)
 
@@ -544,8 +493,5 @@ bot.on("messageCreate", async (message) => {
         console.log(e)
         message.reply("Oops, seems like I caught an error.")
     }
-
 })
-bot.login(
-    process.env.DISCORD_BOT_KEY
-)
+bot.login(process.env.DISCORD_BOT_KEY)
