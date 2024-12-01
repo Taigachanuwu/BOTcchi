@@ -103,6 +103,22 @@ function isAdmin(msg) {
         return false
     }
 }
+function buildHelpPage(message, value, key) {
+    let page = new Discord.EmbedBuilder()
+        .setTitle(`Commands: ${key}`)
+        .setColor(0xE8A7A1)
+        .setThumbnail(message.guild.iconURL())
+        .setTimestamp()
+    for (const [innerKey, innerValue] of Object.entries(value)) {
+        if(isAdmin(message) || innerValue.permissions !== "admin") {
+            page.addFields({
+                name: innerValue.name,
+                value: innerValue.description
+            })
+        }
+    }
+    return page
+}
 
 bot.on("ready", (c) => {
     console.log(c.user.tag.split("#")[0] + " is ready uwu")
@@ -295,27 +311,16 @@ bot.on("messageCreate", async (message) => {
         if(message.content.startsWith("help")) {
             let parameter = message.content.substring(4).trim()
             let embed = []
-            if(parameter) {
-                return
-            } else {
-                for (const [key, value] of Object.entries(commandsHelp)) {
-                    let page = new Discord.EmbedBuilder()
-                        .setTitle("Commands")
-                        .setColor(0xE8A7A1)
-                        .setThumbnail(message.guild.iconURL())
-                        .setTimestamp()
-                    for (const [innerKey, innerValue] of Object.entries(value)) {
-                        if(isAdmin(message) || innerValue.permissions !== "admin") {
-                            page.addFields({
-                                name: innerValue.name,
-                                value: innerValue.description
-                            })
-                        }
-                    }
-                    embed.push(page)
+            for (const [key, value] of Object.entries(commandsHelp)) {
+                if(!parameter || key === parameter){
+                    embed.push(buildHelpPage(message, value, key))
                 }
             }
-            await message.author.send({embeds: embed})
+            if(embed.length !== 0) {
+                await message.author.send({embeds: embed})
+            } else {
+                message.reply("Thats not a valid category")
+            }
         }
         /*
          * ranked
