@@ -69,6 +69,11 @@ bot.on("guildCreate", (c) => {
     getChannelIds().then(channels => channels.forEach(channel => createReactionsEntry(channel[0], channel[1])))
 })
 
+bot.on("channelCreate", (c) => {
+    console.log("New channel was created: " + c.guild.name, c.name)
+    createReactionsEntry(c.id, c.guildId)
+})
+
 bot.on("messageCreate", async (message) => {
     try {
         let response = isReactionActivated(message.channelId)
