@@ -233,14 +233,17 @@ bot.on("messageCreate", async (message) => {
             let parameter = message.content.substring(4).trim()
             let embed = []
             for (const [key, value] of Object.entries(commandsHelp)) {
-                if (!parameter || key === parameter) {
+                if (!parameter || parameter.toLowerCase() === "here" || key === parameter ) {
                     embed.push(buildHelpPage(message, value, key))
                 }
             }
-            if (embed.length !== 0) {
+            if (embed.length !== 0 && parameter.toLowerCase() !== "here") {
+                await message.react("✅")
                 await message.author.send({embeds: embed})
+            } else if (embed.length !== 0) {
+                await message.channel.send({embeds: embed})
             } else {
-                message.reply("Thats not a valid category")
+                await message.reply("Thats not a valid category")
             }
         }
         /*
