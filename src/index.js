@@ -443,14 +443,18 @@ bot.on("messageCreate", async (message) => {
             console.log(queue)
         }
         if(message.content === "queue check") {
+            if(!queue[message.guildId]) {
+                queue[message.guildId] = []
+            }
             let embeds = []
             if(queue[message.guildId].length === 0) {
-                embeds = [new Discord.EmbedBuilder()
-                    .setColor(0xE8A7A1)
-                    .setTitle('Matchmaking Queue')
-                    .setThumbnail(message.guild.iconURL())
-                    .setTimestamp()
-                    .addFields(
+                embeds = [
+                    new Discord.EmbedBuilder()
+                        .setColor(0xE8A7A1)
+                        .setTitle('Matchmaking Queue')
+                        .setThumbnail(message.guild.iconURL())
+                        .setTimestamp()
+                        .addFields(
                         {
                             name: "No one joined the queue",
                             value: "Join the queue by typing '!queue join'!"
