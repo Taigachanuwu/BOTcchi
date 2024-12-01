@@ -7,7 +7,9 @@ const bot = new Discord.Client({
         Discord.IntentsBitField.Flags.Guilds,
         Discord.IntentsBitField.Flags.GuildMembers,
         Discord.IntentsBitField.Flags.GuildMessages,
-        Discord.IntentsBitField.Flags.MessageContent
+        Discord.IntentsBitField.Flags.MessageContent,
+        Discord.IntentsBitField.Flags.GuildMessageReactions,
+        Discord.IntentsBitField.Flags.DirectMessageReactions
     ],
 
 })
@@ -41,6 +43,52 @@ let statuses = [
     "Check out my perfect form. It's perfect!",
     "A beverage of sorts?"
 ]
+let commandsHelp = {
+    general: {
+        avatar: {
+            name: "avatar",
+            description: "Gets the profile picture of a user. \nUsage: !avatar [Discord Tag]",
+            permissions: "user"
+        },
+        reactions: {
+            name: "reactions",
+            description: "Toggles BOTcchis reaction memes to keywords. \nUsage: !reactions { optional: 'server' }",
+            permissions: "admin"
+        },
+        help: {
+            name: "help",
+            description: "Sends the user a command list to use. \nUsage: !help { optional: 'general', 'ranked' }",
+            permissions: "user"
+        },
+    },
+    ranked: {
+        createRankedTable: {
+            name: "createRankedTable",
+            description: "Creates the prerequisite ranked tables for your server. \nUsage: !createRankedTable",
+            permissions: "admin"
+        },
+        result: {
+            name: "result",
+            description: "Adds a result between two players to the ranked database. \nUsage: !result [Discord Tag] [Discord Tag] [Score P1 - Score P2]",
+            permissions: "admin"
+        },
+        matches: {
+            name: "matches",
+            description: "Returns the last matches played on this server. \nUsage: !matches { optional: number, default: 5 }",
+            permissions: "user"
+        },
+        stats: {
+            name: "stats",
+            description: "Returns the stats of the user or the tagged person. \nUsage: !stats { optional: Discord Tag, default: user }",
+            permissions: "user"
+        },
+        queue: {
+            name: "queue",
+            description: "Matchmaking queue with the help of BOTcchi. \nUsage: !queue [ 'join { optional: join message }', 'match [Discord Tag]', 'leave', 'check' ]",
+            permissions: "user"
+        },
+    }
+}
 
 async function getChannelIds() {
     const discordServers = bot.guilds.cache;
@@ -49,7 +97,11 @@ async function getChannelIds() {
     return channels
 }
 function isAdmin(msg) {
-    return msg.member.permissionsIn(msg.channel).has(Discord.PermissionsBitField.Flags.Administrator)
+    try {
+        return msg.member.permissionsIn(msg.channel).has(Discord.PermissionsBitField.Flags.Administrator)
+    } catch {
+        return false
+    }
 }
 
 bot.on("ready", (c) => {
@@ -76,6 +128,9 @@ bot.on("channelCreate", (c) => {
 
 bot.on("messageCreate", async (message) => {
     try {
+        if(message.author.bot) {
+            return
+        }
         let response = isReactionActivated(message.channelId)
         if(response) {
             if(message.content.includes("Bingo")) {
@@ -114,15 +169,6 @@ bot.on("messageCreate", async (message) => {
         if (message.content.startsWith(prefix)) {
             message.content = message.content.substring(1)
         }
-        /*
-         * basic functionality
-         */
-        if(message.content.startsWith("avatar")) {
-            let userID = message.content.split(" ")[1].slice(2, -1)
-            let user = await bot.users.fetch(userID).then((user) => user.displayAvatarURL({size: 4096}))
-            await message.reply(user)
-        }
-
         if(isAdmin(message)) {
             /*
              * basic functionality
@@ -137,17 +183,19 @@ bot.on("messageCreate", async (message) => {
                 updateServerReactionActivation(message.guildId, response)
                 message.reply("T-The reactions for the whole server are turned to " + response.toString() + "!")
             }
-            if (message.content.startsWith("changePrefix")) {
-                let parts = message.content.split(" ")
-                if (!parts[1]) {
-                    message.reply("P-Please enter a symbol...")
-                } else if (parts[1].length > 2) {
-                    message.reply("T-The prefix cant be longer than two characters..")
-                } else {
-                    prefix = parts[1]
-                    message.reply("T-The prefix was successfully changed!!")
-                }
-            }
+            // TO DO: add table for server prefix
+
+            // if (message.content.startsWith("changePrefix")) {
+            //     let parts = message.content.split(" ")
+            //     if (!parts[1]) {
+            //         message.reply("P-Please enter a symbol...")
+            //     } else if (parts[1].length > 2) {
+            //         message.reply("T-The prefix cant be longer than two characters..")
+            //     } else {
+            //         prefix = parts[1]
+            //         message.reply("T-The prefix was successfully changed!!")
+            //     }
+            // }
             /*
              * ranked
              */
@@ -235,6 +283,39 @@ bot.on("messageCreate", async (message) => {
                     await message.reply("The ranked database is already set up.")
                 }
             }
+        }
+        /*
+         * basic functionality
+         */
+        if(message.content.startsWith("avatar")) {
+            let userID = message.content.split(" ")[1].slice(2, -1)
+            let user = await bot.users.fetch(userID).then((user) => user.displayAvatarURL({size: 4096}))
+            await message.reply(user)
+        }
+        if(message.content.startsWith("help")) {
+            let parameter = message.content.substring(4).trim()
+            let embed = []
+            if(parameter) {
+                return
+            } else {
+                for (const [key, value] of Object.entries(commandsHelp)) {
+                    let page = new Discord.EmbedBuilder()
+                        .setTitle("Commands")
+                        .setColor(0xE8A7A1)
+                        .setThumbnail(message.guild.iconURL())
+                        .setTimestamp()
+                    for (const [innerKey, innerValue] of Object.entries(value)) {
+                        if(isAdmin(message) || innerValue.permissions !== "admin") {
+                            page.addFields({
+                                name: innerValue.name,
+                                value: innerValue.description
+                            })
+                        }
+                    }
+                    embed.push(page)
+                }
+            }
+            await message.author.send({embeds: embed})
         }
         /*
          * ranked
@@ -339,7 +420,6 @@ bot.on("messageCreate", async (message) => {
 
             await message.reply({embeds: [embed]})
         }
-
         if(message.content.startsWith("queue join")) {
             if(!queue[message.guildId]) {
                 queue[message.guildId] = []
@@ -411,13 +491,13 @@ bot.on("messageCreate", async (message) => {
             } else if (!joinedPlayers.includes(player)) {
                 await message.reply("That player is not currently in the Matchmaking queue")
             } else {
-                let reply = await player.send(message.author.displayName + " has sent you a match request. Do you want to accept?")
+                let reply = await message.channel.send(message.author.displayName + " has sent you a match request. Do you want to accept?")
                 await reply.react("✅")
                 await reply.react("❌")
                 const filter = (reaction) => {
-                    return reaction.emoji.name === '✅'
+                    return !!reaction
                 }
-                const collector = message.createReactionCollector({ filter, max: 1 });
+                const collector = message.createReactionCollector({ filter, max: 1, time: 7000 });
                 collector.on('collect', r => console.log(`Collected ${r.emoji.name}`));
                 collector.on('end', collected => console.log(`Collected ${collected.size} items`));
             }
