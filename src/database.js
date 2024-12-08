@@ -32,7 +32,7 @@ function getMatchHistory(serverID, entries) {
 function getPlayerStats(serverID, playerID) {
     let tableName = "player_stats_" + serverID
     let sql = "SELECT * FROM " + tableName + " WHERE player_name = ?"
-    return database.prepare(sql).get(playerID) ?? {current_rating: 500}
+    return database.prepare(sql).get(playerID) ?? {current_rating: 500, current_streak: 0}
 }
 function getTableCount(tableName) {
     let sql = "SELECT * FROM " + tableName
@@ -94,7 +94,6 @@ function addResultToDatabase(matchResult, serverID) {
     let tableName = "matches_" + serverID
     let sql = "INSERT INTO " + tableName + "(id,first_player,second_player,score_first_player,score_second_player,winner) VALUES (?,?,?,?,?,?)"
     database.prepare(sql).run(getTableCount(tableName) + 1, matchResult[1], matchResult[2], scoreFirstPlayer, scoreSecondPlayer, winner)
-    console.log("Hi")
     updateStatsDatabase(firstPlayer, secondPlayer, scoreFirstPlayer, scoreSecondPlayer, serverID)
     return false
 }

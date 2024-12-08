@@ -273,10 +273,10 @@ bot.on("messageCreate", async (message) => {
             let [firstPlayer, firstPlayerRating] = [await bot.users.fetch(matchResult[1].slice(2, -1)), db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]]
             let [secondPlayer, secondPlayerRating] = [await bot.users.fetch(matchResult[2].slice(2, -1)), db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]]
             let isError = db.addResultToDatabase(matchResult, message.guildId.toString())
-            let firstPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[1])["current_rating"]
-            let secondPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[2])["current_rating"]
-            let firstPlayerDifference = Math.round(firstPlayerRatingAfter) - Math.round(firstPlayerRating)
-            let secondPlayerDifference = Math.round(secondPlayerRatingAfter) - Math.round(secondPlayerRating)
+            let firstPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[1])
+            let secondPlayerRatingAfter = db.getPlayerStats(message.guildId, matchResult[2])
+            let firstPlayerDifference = Math.round(firstPlayerRatingAfter.current_rating) - Math.round(firstPlayerRating)
+            let secondPlayerDifference = Math.round(secondPlayerRatingAfter.current_rating) - Math.round(secondPlayerRating)
             if (isError) {
                 await message.reply("Oops, im sorry, something went wrong!")
                 return
@@ -293,18 +293,18 @@ bot.on("messageCreate", async (message) => {
                 })
             if (result[0] !== result[1]) {
                 embed.addFields({
-                    name: (result[0] < result[1] ? secondPlayer.globalName : firstPlayer.globalName) + " is on a winning streak!",
+                    name: (result[0] < result[1] ? secondPlayer.globalName : firstPlayer.globalName) + ` is on a ${firstPlayerRatingAfter.current_streak === 0 ? secondPlayerRatingAfter.current_streak : firstPlayerRatingAfter.current_streak} game winning streak!`,
                     value: '\u200b'
                 })
             }
             embed.addFields({
                 name: firstPlayer.globalName,
-                value: Math.round(firstPlayerRating) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstPlayerRatingAfter),
+                value: Math.round(firstPlayerRating) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstPlayerRatingAfter.current_rating),
                 inline: true
             })
             embed.addFields({
                 name: secondPlayer.globalName,
-                value: Math.round(secondPlayerRating) + (secondPlayerDifference > 0 ? " + " : " - ") + Math.abs(secondPlayerDifference) + " :arrow_right: " + Math.round(secondPlayerRatingAfter),
+                value: Math.round(secondPlayerRating) + (secondPlayerDifference > 0 ? " + " : " - ") + Math.abs(secondPlayerDifference) + " :arrow_right: " + Math.round(secondPlayerRatingAfter.current_rating),
                 inline: true
             })
             await message.reply({embeds: [embed]})
