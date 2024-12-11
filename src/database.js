@@ -88,7 +88,7 @@ function addResultToDatabase(matchResult, serverID) {
     let secondPlayer = matchResult[2]
     let [scoreFirstPlayer, scoreSecondPlayer] = matchResult[3].split(/[-:]/)
     if(isNaN(scoreFirstPlayer) || isNaN(scoreSecondPlayer)) {
-        return true
+        return true // it's wild that I made it return a boolean
     }
     let winner = +scoreFirstPlayer < +scoreSecondPlayer ? secondPlayer : +scoreFirstPlayer > +scoreSecondPlayer ? firstPlayer : "Tie"
     let tableName = "matches_" + serverID
