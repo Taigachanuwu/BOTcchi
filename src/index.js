@@ -1,9 +1,6 @@
 require("dotenv").config()
-const db = require("./database.js")
 const Discord = require("discord.js")
-const {
-    createReactionsEntry, isReactionActivated, updateReactionActivation, updateServerReactionActivation
-} = require("./database");
+const { createReactionsEntry, isReactionActivated } = require("./database");
 const bot = new Discord.Client({
     intents: [
         Discord.IntentsBitField.Flags.Guilds,
