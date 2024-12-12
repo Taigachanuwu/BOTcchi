@@ -1,4 +1,4 @@
-const db = require("../database");
+const db = require("./utility/database");
 const Discord = require("discord.js");
 const {isAdmin} = require("./utility/helpers")
 
@@ -51,7 +51,7 @@ module.exports = {
             })
         if (result[0] !== result[1]) {
             embed.addFields({
-                name:  `${result[0] < result[1] ? secondPlayer.username : firstPlayer.username} is on a ${firstPlayerAfter.current_streak <= 0 ? secondPlayerAfter.current_streak : firstPlayerAfter.current_streak} game winning streak!`,
+                name: `${result[0] < result[1] ? secondPlayer.username : firstPlayer.username} is on a ${firstPlayerAfter.current_streak <= 0 ? secondPlayerAfter.current_streak : firstPlayerAfter.current_streak} game winning streak!`,
                 value: '\u200b'
             })
         }
@@ -69,4 +69,3 @@ module.exports = {
         await interaction.reply({embeds: [embed]})
     },
 };
-

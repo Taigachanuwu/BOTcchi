@@ -1,6 +1,6 @@
 require("dotenv").config()
 const Discord = require("discord.js")
-const { createReactionsEntry, isReactionActivated } = require("./database");
+const { createReactionsEntry, isReactionActivated } = require("./commands/utility/database");
 const bot = new Discord.Client({
     intents: [
         Discord.IntentsBitField.Flags.Guilds,
@@ -14,16 +14,9 @@ const bot = new Discord.Client({
 const fs = require("fs");
 const commandFiles = fs.readdirSync("src/commands").filter(file => file.endsWith(".js"));
 
-bot.commands = new Discord.Collection();
-
-for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    bot.commands.set(command.name, command);
-}
 
 // create prefix database for changeability
-let prefix = "!"
-let queue = {}
+let prefix = "_"
 let statuses = [
     "The One Piece is real!",
     "Nah, I'd win",
@@ -51,6 +44,13 @@ let statuses = [
     "Check out my perfect form. It's perfect!",
     "A beverage of sorts?"
 ]
+
+bot.commands = new Discord.Collection();
+
+for (const file of commandFiles) {
+    const command = require(`./commands/${file}`);
+    bot.commands.set(command.name, command);
+}
 
 async function getChannelIds() {
     const discordServers = bot.guilds.cache;
@@ -128,6 +128,7 @@ bot.on("messageCreate", async (message) => {
                 })
             }
         }
+        console.log(message.author)
         if (!message.content.startsWith(prefix)) return;
         const args = message.content.slice(prefix.length).split(/ +/);
         const commandName = args.shift().toLowerCase();

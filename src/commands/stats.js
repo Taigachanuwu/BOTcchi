@@ -1,4 +1,4 @@
-const db = require("../database");
+const db = require("./utility/database");
 const Discord = require("discord.js");
 
 

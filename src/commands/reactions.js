@@ -1,4 +1,4 @@
-const {updateReactionActivation, isReactionActivated, updateServerReactionActivation} = require("../database");
+const {updateReactionActivation, isReactionActivated, updateServerReactionActivation} = require("./utility/database");
 const {isAdmin} = require("./utility/helpers")
 
 module.exports = {
@@ -11,7 +11,7 @@ module.exports = {
             return
         }
         let reaction = !isReactionActivated(interaction.channelId)
-        if(args.length === 0) {
+        if (args.length === 0) {
             updateReactionActivation(interaction.channelId, reaction)
             await interaction.reply("T-The reactions are turned to " + reaction.toString() + "!")
         } else if (args[0] === "server") {

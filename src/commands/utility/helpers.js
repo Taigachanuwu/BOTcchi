@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-
 function isAdmin(msg) {
     try {
         return msg.member.permissionsIn(msg.channel).has(Discord.PermissionsBitField.Flags.Administrator)
@@ -7,7 +6,6 @@ function isAdmin(msg) {
         return false
     }
 }
-
 function buildHelpPage(message, value, key) {
     let page = new Discord.EmbedBuilder()
         .setTitle(`Commands: ${key}`)

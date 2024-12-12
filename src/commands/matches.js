@@ -1,4 +1,4 @@
-const db = require("../database");
+const db = require("./utility/database");
 const Discord = require("discord.js");
 
 module.exports = {
@@ -23,7 +23,7 @@ module.exports = {
             }
             let entry = matchHistory[i]
             embed[page].addFields({
-                name:  `Match ${entry["id"]}`,
+                name: `Match ${entry["id"]}`,
                 value: `${entry["first_player"]} ${entry["score_first_player"]} - ${entry["score_second_player"]} ${entry["second_player"]}`
             })
         }

@@ -17,8 +17,8 @@ module.exports = {
 
         }, {})
         console.log(commands)
-        for(const [key, value] of Object.entries(commands)) {
-            if ( !args[0] || args[0].toLowerCase() === "here" || key === args[0] ) {
+        for (const [key, value] of Object.entries(commands)) {
+            if (!args[0] || args[0].toLowerCase() === "here" || key === args[0]) {
                 embed.push(buildHelpPage(interaction, value, key))
             }
         }

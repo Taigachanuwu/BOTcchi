@@ -26,7 +26,7 @@ function createReactionsEntry(channelID, serverID) {
 }
 function getMatchHistory(serverID, entries) {
     let tableName = "matches_" + serverID
-    let sql = "SELECT * FROM " + tableName + " ORDER BY id DESC"
+    let sql = `SELECT * FROM ${tableName} ORDER BY id DESC`
     return database.prepare(sql).all().slice(0, entries)
 }
 function getPlayerStats(serverID, playerID) {
@@ -37,6 +37,11 @@ function getPlayerStats(serverID, playerID) {
 function getTableCount(tableName) {
     let sql = "SELECT * FROM " + tableName
     return database.prepare(sql).all().length
+}
+function getRankedLeaderboard(serverID, orderKey = "current_rating") {
+    let tableName = "player_stats_" + serverID
+    let sql = `SELECT * FROM ${tableName} ORDER BY ${orderKey} DESC`
+    return database.prepare(sql).all()
 }
 function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, secondPlayerScore, serverID) {
     let tableName = "player_stats_" + serverID
@@ -108,4 +113,4 @@ function isReactionActivated(channelID) {
     return database.prepare(sql).get(channelID)["activated"]
 }
 
-module.exports = {createRankedTables, createReactionsEntry, getMatchHistory, getPlayerStats, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, doesDatabaseExist, isReactionActivated}
+module.exports = {createRankedTables, createReactionsEntry, getMatchHistory, getPlayerStats, getRankedLeaderboard, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, doesDatabaseExist, isReactionActivated}
