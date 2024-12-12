@@ -86,19 +86,22 @@ bot.on("messageCreate", async (message) => {
         if (message.author.bot) return;
         let response = isReactionActivated(message.channelId)
         if (response) {
-            if (message.content.includes("Bingo")) {
+            if (message.content.toLowerCase().includes("die türken machen das unmögliche immer möglich")) {
+                await message.reply({files: [{attachment: "assets/turkiye.mov", name: "türkiye.mp4"}]})
+            }
+            if (message.content.toLowerCase().includes("bingo")) {
                 await message.reply({files: [{attachment: "assets/gojo-bingo.gif", name: "getBingoed.gif"}]})
             }
-            if (message.content.includes("cock")) {
+            if (message.content.toLowerCase().includes("cock")) {
                 await message.reply({files: [{attachment: "assets/cockbending.png", name: "cockbending.jpg"}]})
             }
-            if (message.content.includes("prince of all saiyans")) {
+            if (message.content.toLowerCase().includes("vegeta")) {
                 await message.reply({files: [{attachment: "assets/princeofallsaiyans.mp4", name: "video.mp4"}]})
             }
-            if (message.content.toLowerCase().includes("awesome fucking tien edit")) {
+            if (message.content.toLowerCase().includes("tien edit")) {
                 await message.reply({files: [{attachment: "assets/coolTienEdit.mp4", name: "video.mp4"}]})
             }
-            if (message.content.includes("goku")) {
+            if (message.content.toLowerCase().includes("goku")) {
                 let image = [
                     "assets/gokucircles/7fe.jpg",
                     "assets/gokucircles/9c9.jpg",
@@ -113,7 +116,7 @@ bot.on("messageCreate", async (message) => {
                     }]
                 })
             }
-            if (message.content.includes("the drink")) {
+            if (message.content.toLowerCase().includes("the drink")) {
                 let clip = [
                     "assets/thedrink/the_cup.mov",
                     "assets/thedrink/they_call_him_the_what.mov",
