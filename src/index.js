@@ -16,7 +16,7 @@ const commandFiles = fs.readdirSync("src/commands").filter(file => file.endsWith
 
 
 // create prefix database for changeability
-let prefix = "_"
+let prefix = "!"
 let statuses = [
     "The One Piece is real!",
     "Nah, I'd win",
@@ -128,7 +128,6 @@ bot.on("messageCreate", async (message) => {
                 })
             }
         }
-        console.log(message.author)
         if (!message.content.startsWith(prefix)) return;
         const args = message.content.slice(prefix.length).split(/ +/);
         const commandName = args.shift().toLowerCase();
