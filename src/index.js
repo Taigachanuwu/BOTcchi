@@ -1,6 +1,6 @@
 require("dotenv").config()
 const Discord = require("discord.js")
-const { createReactionsEntry, isReactionActivated } = require("./commands/utility/database");
+const {createReactionsEntry, isReactionActivated} = require("./commands/utility/database");
 const bot = new Discord.Client({
     intents: [
         Discord.IntentsBitField.Flags.Guilds,
@@ -13,7 +13,6 @@ const bot = new Discord.Client({
 })
 const fs = require("fs");
 const commandFiles = fs.readdirSync("src/commands").filter(file => file.endsWith(".js"));
-
 
 // create prefix database for changeability
 let prefix = "!"
@@ -42,11 +41,11 @@ let statuses = [
     "Nuke the french (sorry Auro)",
     "Heavens door, remove his ability to cum!",
     "Check out my perfect form. It's perfect!",
-    "A beverage of sorts?"
+    "A beverage of sorts?",
+    "If someone with one arm speaks sign language, is that a speech impediment or an accent?"
 ]
 
 bot.commands = new Discord.Collection();
-
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     bot.commands.set(command.name, command);
@@ -70,22 +69,22 @@ bot.on("ready", (c) => {
         });
     }, 5 * 60 * 1000);
 })
-
 bot.on("guildCreate", (c) => {
     console.log("Joined " + c.name)
     getChannelIds().then(channels => channels.forEach(channel => createReactionsEntry(channel[0], channel[1])))
 })
-
 bot.on("channelCreate", (c) => {
     console.log("New channel was created: " + c.guild.name, c.name)
     createReactionsEntry(c.id, c.guildId)
 })
-
 bot.on("messageCreate", async (message) => {
     try {
         if (message.author.bot) return;
         let response = isReactionActivated(message.channelId)
         if (response) {
+            if (message.content.toLowerCase().includes("yoshikage")) {
+                await message.reply("My name is Yoshikage Kira. I'm 33 years old. My house is in the northeast section of Morioh, where all the villas are, and I am not married. I work as an employee for the Kame Yu department stores, and I get home every day by 8 PM at the latest. I don't smoke, but I occasionally drink. I'm in bed by 11 PM, and make sure I get eight hours of sleep, no matter what. After having a glass of warm milk and doing about twenty minutes of stretches before going to bed, I usually have no problems sleeping until morning. Just like a baby, I wake up without any fatigue or stress in the morning. I was told there were no issues at my last check-up. I'm trying to explain that I'm a person who wishes to live a very quiet life. I take care not to trouble myself with any enemies, like winning and losing, that would cause me to lose sleep at night. That is how I deal with society, and I know that is what brings me happiness. Although, if I were to fight I wouldn't lose to anyone. ")
+            }
             if (message.content.toLowerCase().includes("die türken machen das unmögliche immer möglich")) {
                 await message.reply({files: [{attachment: "assets/turkiye.mov", name: "türkiye.mp4"}]})
             }
@@ -147,4 +146,5 @@ bot.on("messageCreate", async (message) => {
         await message.reply("Oops, seems like I caught an error.")
     }
 })
+
 bot.login(process.env.DISCORD_BOT_KEY)
