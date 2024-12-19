@@ -1,4 +1,5 @@
 require("dotenv").config()
+const cron = require("cron");
 const Discord = require("discord.js")
 const {createReactionsEntry, isReactionActivated} = require("./commands/utility/database");
 const bot = new Discord.Client({
@@ -13,9 +14,19 @@ const bot = new Discord.Client({
 })
 const fs = require("fs");
 const commandFiles = fs.readdirSync("src/commands").filter(file => file.endsWith(".js"));
+// https://discord.com/channels/1317023174361354282/1317023175300743231
+let daysTillDandadan = (new Date(2025, 6, 1, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+const job = cron.CronJob.from({
+    cronTime: '0 0 7 * * *',
+    onTick: function () {
+        bot.channels.cache.get('1317023175300743231').send(`Es sind noch ${Math.round(daysTillDandadan)} Tage bis zur 2. Season von Dandadan!`)
+    },
+    start: true,
+    timeZone: 'Europe/Berlin'
+});
 
 // create prefix database for changeability
-let prefix = "!"
+let prefix = "_"
 let statuses = [
     "The One Piece is real!",
     "Nah, I'd win",
