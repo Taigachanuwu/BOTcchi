@@ -17,16 +17,16 @@ const commandFiles = fs.readdirSync("src/commands").filter(file => file.endsWith
 // https://discord.com/channels/1317023174361354282/1317023175300743231
 const job = cron.CronJob.from({
     cronTime: '0 0 7 * * *',
-    onTick: function () {
-        let daysTillDandadan = (new Date(2025, 6, 1, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-        bot.channels.cache.get('1317023175300743231').send(`Es sind noch ${Math.round(daysTillDandadan)} Tage bis zur 2. Season von Dandadan!`)
+    onTick: async function () {
+        let daysTillStartDandadan = Math.round((new Date(2025, 6, 1, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        await bot.channels.cache.get('1317023175300743231').send(`Es sind noch ${daysTillStartDandadan} Tage bis zur 2. Season von Dandadan!`)
     },
     start: true,
     timeZone: 'Europe/Berlin'
 });
 
 // create prefix database for changeability
-let prefix = "_"
+let prefix = "!"
 let statuses = [
     "The One Piece is real!",
     "Nah, I'd win",

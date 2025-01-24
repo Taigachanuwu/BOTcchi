@@ -3,7 +3,7 @@ module.exports = {
     description: "Creates a user role with an editable color. \nUsage: !role { create, change [color code] }",
     permissions: "user",
     category: "general",
-    async execute(interaction, args) {
+    async execute(interaction, args, bot) {
         let role
         switch (args[0]) {
             case "create":
@@ -13,6 +13,7 @@ module.exports = {
                     existedAlready = false
                     await interaction.guild.roles.create({
                         name: interaction.author.username,
+                        position: interaction.guild.roles.cache.find(role => role.name === bot.user.username).position-1
                     })
                     role = interaction.guild.roles.cache.find(role => role.name === interaction.author.username)
                 }
