@@ -26,6 +26,7 @@ module.exports = {
                 break;
             case "change":
                 role = interaction.guild.roles.cache.find(role => role.name === interaction.author.username)
+                console.log(role)
                 try {
                     await role.edit({color: args[1]})
                 } catch {
