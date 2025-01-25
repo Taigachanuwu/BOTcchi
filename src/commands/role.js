@@ -13,7 +13,7 @@ module.exports = {
                     existedAlready = false
                     await interaction.guild.roles.create({
                         name: interaction.author.username,
-                        position: interaction.guild.roles.cache.find(role => role.name === bot.user.username).position-1
+                        position: interaction.guild.roles.cache.find(role => role.name === bot.user.username).position
                     })
                     role = interaction.guild.roles.cache.find(role => role.name === interaction.author.username)
                 }
