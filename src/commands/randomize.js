@@ -7,7 +7,7 @@ module.exports = {
     async execute(interaction, args) {
         const member = interaction.guild.members.cache.get(interaction.author.id)
         let players = member.voice.channel.members.map(player => player.displayName)
-        const playerAmount = isNaN(+args[0]) ? players.length : +args[0]
+        const playerAmount = players.length // isNaN(+args[0]) ? players.length : +args[0]
         if(playerAmount < 2) {
             interaction.reply("There have to be at least 2 players to create random teams.")
             return
