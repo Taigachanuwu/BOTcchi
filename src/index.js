@@ -9,7 +9,8 @@ const bot = new Discord.Client({
         Discord.IntentsBitField.Flags.GuildMessages,
         Discord.IntentsBitField.Flags.MessageContent,
         Discord.IntentsBitField.Flags.GuildMessageReactions,
-        Discord.IntentsBitField.Flags.DirectMessageReactions
+        Discord.IntentsBitField.Flags.DirectMessageReactions,
+        Discord.IntentsBitField.Flags.GuildVoiceStates
     ],
 })
 const fs = require("fs");
