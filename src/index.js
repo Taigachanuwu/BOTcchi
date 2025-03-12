@@ -36,9 +36,8 @@ const DoTeapot = cron.CronJob.from({
     timeZone: 'Europe/Berlin'
 });
 
-// create prefix database for changeability
-let prefix = "!"
 let statuses = [
+    "Bitch, you just jealous of my super saiyan swagger",
     "The One Piece is real!",
     "Nah, I'd win",
     "Stand proud. You're strong.",
@@ -64,7 +63,11 @@ let statuses = [
     "Heavens door, remove his ability to cum!",
     "Check out my perfect form. It's perfect!",
     "A beverage of sorts?",
-    "If someone with one arm speaks sign language, is that a speech impediment or an accent?"
+    "If someone with one arm speaks sign language, is that a speech impediment or an accent?",
+    "O I I A I O O I I A I",
+    "Dodge!",
+    "Haben wir noch Peps dabei?",
+    "I like me some good turkish rotational ham"
 ]
 
 bot.commands = new Discord.Collection();
@@ -72,7 +75,7 @@ for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     bot.commands.set(command.name, command);
 }
-
+let prefix
 async function getChannelIds() {
     const discordServers = bot.guilds.cache;
     let channels = discordServers.map(discordServer => discordServer.channels.cache)
@@ -82,6 +85,7 @@ async function getChannelIds() {
 
 bot.on("ready", (c) => {
     console.log(c.user.tag.split("#")[0] + " is ready uwu")
+    prefix = bot.user.tag === "TESTcchi#3381" ? "_" : "!"
     getChannelIds().then(channels => channels.forEach(channel => createReactionsEntry(channel[0], channel[1])))
     setInterval(() => {
         let randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
