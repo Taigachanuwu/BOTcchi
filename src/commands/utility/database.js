@@ -11,10 +11,9 @@ function createRankedTables(serverName){
     database.exec(sql)
 }
 function createPlayerEntry(player, serverID){
-    let tableName = "player_stats_" + serverID
-    let sql = "INSERT INTO " + tableName + " VALUES(?,?,?,?,?,?,?,?,?,?,?)"
-    database.prepare(sql).run(player,500,500,500,0,0,0,0,0,0,0)
-    sql = "SELECT * FROM " + tableName + " WHERE player_name = ?"
+    let sql = "INSERT INTO player_stats VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+    database.prepare(sql).run(player,500,500,500,0,0,0,0,0,0,0, serverID)
+    sql = "SELECT * FROM player_stats WHERE player_name = ?"
     return database.prepare(sql).get(player)
 }
 function createReactionsEntry(channelID, serverID) {
@@ -25,32 +24,41 @@ function createReactionsEntry(channelID, serverID) {
     }
 }
 function getMatchHistory(serverID, entries) {
-    let tableName = "matches_" + serverID
-    let sql = `SELECT * FROM ${tableName} ORDER BY id DESC`
-    return database.prepare(sql).all().slice(0, entries)
+    let sql = `SELECT * FROM matches WHERE server_id = ? ORDER BY id DESC`
+    return database.prepare(sql).get(serverID).slice(0, entries)
 }
 function getPlayerStats(serverID, playerID) {
-    let tableName = "player_stats_" + serverID
-    let sql = "SELECT * FROM " + tableName + " WHERE player_name = ?"
-    return database.prepare(sql).get(playerID) ?? {current_rating: 500, current_streak: 0}
+    let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
+    return database.prepare(sql).get(playerID, serverID) ?? {
+        player_name: playerID,
+        current_rating: 500,
+        max_rating: 0,
+        min_rating: 0,
+        total_matches: 0,
+        wins: 0,
+        losses: 0,
+        won_games: 0,
+        lost_games: 0,
+        current_streak: 0,
+        best_streak: 0,
+        server_id: serverID
+    }
 }
 function getTableCount(tableName) {
-    let sql = "SELECT * FROM " + tableName
+    let sql = `SELECT * FROM ${tableName}`
     return database.prepare(sql).all().length
 }
 function getRankedLeaderboard(serverID, orderKey = "current_rating") {
-    let tableName = "player_stats_" + serverID
-    let sql = `SELECT * FROM ${tableName} ORDER BY ${orderKey} DESC`
-    return database.prepare(sql).all()
+    let sql = `SELECT * FROM player_stats WHERE server_id = ? ORDER BY ? DESC`
+    return database.prepare(sql).get(serverID, orderKey)
 }
 function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, secondPlayerScore, serverID) {
-    let tableName = "player_stats_" + serverID
-    let sql = "SELECT * FROM " + tableName + " WHERE player_name = ?"
-    let firstPlayerStats = database.prepare(sql).get(firstPlayer) ?? createPlayerEntry(firstPlayer, serverID)
-    let secondPlayerStats = database.prepare(sql).get(secondPlayer) ?? createPlayerEntry(secondPlayer, serverID)
+    let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
+    let firstPlayerStats = database.prepare(sql).get(firstPlayer, serverID) ?? createPlayerEntry(firstPlayer, serverID)
+    let secondPlayerStats = database.prepare(sql).get(secondPlayer, serverID) ?? createPlayerEntry(secondPlayer, serverID)
     let newFirstStat = ranked.getNewStats(firstPlayerStats, secondPlayerStats, firstPlayerScore, secondPlayerScore)
     let newSecondStat = ranked.getNewStats(secondPlayerStats, firstPlayerStats, secondPlayerScore, firstPlayerScore)
-    sql = "UPDATE " + tableName + " SET current_rating = ?, max_rating = ?, min_rating = ?, total_matches = ?, wins = ?, losses = ?, won_games = ?, lost_games = ?, current_streak = ?, best_streak = ? WHERE player_name = ?"
+    sql = "UPDATE player_stats SET current_rating = ?, max_rating = ?, min_rating = ?, total_matches = ?, wins = ?, losses = ?, won_games = ?, lost_games = ?, current_streak = ?, best_streak = ? WHERE player_name = ? AND server_id = ?"
     database.prepare(sql).run(
         newFirstStat["current_rating"],
         newFirstStat["max_rating"],
@@ -62,7 +70,8 @@ function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, second
         newFirstStat["lost_games"],
         newFirstStat["current_streak"],
         newFirstStat["best_streak"],
-        firstPlayer
+        firstPlayer,
+        serverID
     )
     database.prepare(sql).run(
         newSecondStat["current_rating"],
@@ -75,7 +84,8 @@ function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, second
         newSecondStat["lost_games"],
         newSecondStat["current_streak"],
         newSecondStat["best_streak"],
-        secondPlayer
+        secondPlayer,
+        serverID
     )
 }
 function updateReactionActivation(channelID, reactions) {
@@ -96,16 +106,11 @@ function addResultToDatabase(matchResult, serverID) {
         return true // it's wild that I made it return a boolean
     }
     let winner = +scoreFirstPlayer < +scoreSecondPlayer ? secondPlayer : +scoreFirstPlayer > +scoreSecondPlayer ? firstPlayer : "Tie"
-    let tableName = "matches_" + serverID
-    let sql = "INSERT INTO " + tableName + "(id,first_player,second_player,score_first_player,score_second_player,winner) VALUES (?,?,?,?,?,?)"
-    database.prepare(sql).run(getTableCount(tableName) + 1, matchResult[1], matchResult[2], scoreFirstPlayer, scoreSecondPlayer, winner)
+
+    let sql = "INSERT INTO matches (id, first_player, second_player, score_first_player, score_second_player, winner, server_id) VALUES (?,?,?,?,?,?,?)"
+    database.prepare(sql).run(getTableCount("matches") + 1, matchResult[1], matchResult[2], scoreFirstPlayer, scoreSecondPlayer, winner, serverID)
     updateStatsDatabase(firstPlayer, secondPlayer, scoreFirstPlayer, scoreSecondPlayer, serverID)
     return false
-}
-
-function doesDatabaseExist(tableName) {
-    let sql = "SELECT * FROM sqlite_master WHERE type='table' AND name=" + "'matches_" + tableName + "'"
-    return database.exec(sql).length !== 0
 }
 
 function isReactionActivated(channelID) {
@@ -113,4 +118,4 @@ function isReactionActivated(channelID) {
     return database.prepare(sql).get(channelID)["activated"]
 }
 
-module.exports = {createRankedTables, createReactionsEntry, getMatchHistory, getPlayerStats, getRankedLeaderboard, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, doesDatabaseExist, isReactionActivated}
+module.exports = {createRankedTables, createReactionsEntry, getMatchHistory, getPlayerStats, getRankedLeaderboard, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, isReactionActivated}
