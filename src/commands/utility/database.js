@@ -25,7 +25,7 @@ function createReactionsEntry(channelID, serverID) {
 }
 function getMatchHistory(serverID, entries) {
     let sql = `SELECT * FROM matches WHERE server_id = ? ORDER BY id DESC`
-    return database.prepare(sql).get(serverID).slice(0, entries)
+    return database.prepare(sql).all(serverID).slice(0, entries)
 }
 function getPlayerStats(serverID, playerID) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
@@ -50,7 +50,7 @@ function getTableCount(tableName) {
 }
 function getRankedLeaderboard(serverID, orderKey = "current_rating") {
     let sql = `SELECT * FROM player_stats WHERE server_id = ? ORDER BY ? DESC`
-    return database.prepare(sql).get(serverID, orderKey)
+    return database.prepare(sql).all(serverID, orderKey)
 }
 function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, secondPlayerScore, serverID) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
