@@ -31,6 +31,15 @@ function getRankedLeaderboard(serverID, orderKey = "current_rating") {
     let sql = `SELECT * FROM player_stats WHERE server_id = ? ORDER BY ? DESC`
     return database.prepare(sql).all(serverID, orderKey)
 }
+function getRankedLeaderboardSeason(serverID, season = null) {
+    let timestamp = new Date()
+    let currentSeason = season ?? 2 * (timestamp.getFullYear() - 2025) + (timestamp.getMonth() < 6 ? 1 : 2)
+    let startDate = new Date(2025 + Math.floor(currentSeason/2), currentSeason % 2 === 0 ? 6 : 0, 1, 0, 0, 0)
+    let endDate = new Date(startDate)
+    endDate = new Date(endDate.setMonth(endDate.getMonth() + 6))
+    let seasonHistory = getMatchHistory(serverID).filter(entry => new Date(entry["date"]).getTime() >= startDate.getTime() && new Date(entry["date"]).getTime() < endDate.getTime())
+    return ranked.simulateSeason(seasonHistory)
+}
 function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, secondPlayerScore, serverID) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
     let firstPlayerStats = database.prepare(sql).get(firstPlayer, serverID)
@@ -97,4 +106,4 @@ function isReactionActivated(channelID) {
     return database.prepare(sql).get(channelID)["activated"]
 }
 
-module.exports = {createReactionsEntry, getMatchHistory, getPlayerStats, getRankedLeaderboard, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, isReactionActivated}
+module.exports = {createReactionsEntry, getMatchHistory, getPlayerStats, getRankedLeaderboard, getRankedLeaderboardSeason, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, isReactionActivated}

@@ -14,7 +14,7 @@ const bot = new Discord.Client({
     ],
 })
 const fs = require("fs");
-const commandFiles = fs.readdirSync("src/commands").filter(file => file.endsWith(".js"));
+const commandFiles = fs.readdirSync("src/commands").filter(file => file.endsWith(".js") || file.endsWith(".ts"));
 // https://discord.com/channels/1317023174361354282/1317023175300743231
 const job = cron.CronJob.from({
     cronTime: '0 0 7 * * *',
@@ -67,7 +67,8 @@ let statuses = [
     "O I I A I O O I I A I",
     "Dodge!",
     "Haben wir noch Peps dabei?",
-    "I like me some good turkish rotational ham"
+    "I like me some good turkish rotational ham",
+    "The source is that I made it the fuck up"
 ]
 
 bot.commands = new Discord.Collection();

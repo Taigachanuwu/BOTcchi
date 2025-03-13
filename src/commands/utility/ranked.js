@@ -18,6 +18,7 @@ function getNewStats(player, opponent, playerScore, opponentScore){
     let newishStreak = newStreak(player["current_streak"], playerScore - opponentScore)
 
     return {
+        "player_name":      player["player_name"],
         "current_rating":   newRating,
         "max_rating":       Math.max(player["max_rating"], newRating),
         "min_rating":       Math.min(player["min_rating"], newRating),
@@ -31,4 +32,22 @@ function getNewStats(player, opponent, playerScore, opponentScore){
     }
 }
 
-module.exports = {getNewStats}
+function simulateSeason(matchHistory) {
+    let playerStats = {}
+    for (let i = 0; i < matchHistory.length; i++) {
+        let [firstPlayer, secondPlayer] = [matchHistory[i]["first_player"], matchHistory[i]["second_player"]]
+        if(!(firstPlayer in playerStats)){
+            playerStats[firstPlayer] = {player_name: firstPlayer, current_rating: 500, max_rating: 0, min_rating: 0, total_matches: 0, wins: 0, losses: 0, won_games: 0, lost_games: 0, current_streak: 0, best_streak: 0, server_id: matchHistory[i]["server_ID"]}
+        }
+        if(!(secondPlayer in playerStats)){
+            playerStats[secondPlayer] = {player_name: secondPlayer, current_rating: 500, max_rating: 0, min_rating: 0, total_matches: 0, wins: 0, losses: 0, won_games: 0, lost_games: 0, current_streak: 0, best_streak: 0, server_id: matchHistory[i]["server_ID"]}
+        }
+        let newFirstPlayer = getNewStats(playerStats[firstPlayer], playerStats[secondPlayer], +matchHistory[i]["score_first_player"], +matchHistory[i]["score_second_player"]);
+        let newSecondPlayer = getNewStats(playerStats[secondPlayer], playerStats[firstPlayer], +matchHistory[i]["score_second_player"], +matchHistory[i]["score_first_player"]);
+        playerStats[firstPlayer] = newFirstPlayer
+        playerStats[secondPlayer] = newSecondPlayer
+    }
+    return Object.values(playerStats).sort((a, b) => b.current_rating - a.current_rating)
+}
+
+module.exports = {getNewStats, simulateSeason}
