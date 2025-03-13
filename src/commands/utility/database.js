@@ -97,4 +97,4 @@ function isReactionActivated(channelID) {
     return database.prepare(sql).get(channelID)["activated"]
 }
 
-module.exports = {createRankedTables, createReactionsEntry, getMatchHistory, getPlayerStats, getRankedLeaderboard, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, isReactionActivated}
+module.exports = {createReactionsEntry, getMatchHistory, getPlayerStats, getRankedLeaderboard, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, isReactionActivated}
