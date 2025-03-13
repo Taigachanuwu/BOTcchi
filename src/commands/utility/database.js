@@ -2,19 +2,11 @@ require("dotenv").config()
 const ranked = require("./ranked");
 const database = require("better-sqlite3")(process.env.FILE_PATH)
 
-function createRankedTables(serverName){
-    let tableName = "matches_" + serverName
-    let sql = "CREATE TABLE IF NOT EXISTS " + tableName + "(id integer, first_player varchar, second_player varchar, score_first_player integer, score_second_player integer, winner varchar, date integer default current_timestamp)"
-    database.exec(sql)
-    tableName = "player_stats_" + serverName
-    sql = "CREATE TABLE IF NOT EXISTS " + tableName + "(player_name varchar, current_rating integer, max_rating integer, min_rating integer, total_matches integer,wins integer, losses integer, won_games integer, lost_games integer, current_streak integer, best_streak integer)"
-    database.exec(sql)
-}
 function createPlayerEntry(player, serverID){
     let sql = "INSERT INTO player_stats VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
     database.prepare(sql).run(player,500,500,500,0,0,0,0,0,0,0, serverID)
-    sql = "SELECT * FROM player_stats WHERE player_name = ?"
-    return database.prepare(sql).get(player)
+    sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_ID = ?"
+    return database.prepare(sql).get(player, serverID)
 }
 function createReactionsEntry(channelID, serverID) {
     let statement = "SELECT * FROM reactions WHERE channel_id = ?"
@@ -29,20 +21,7 @@ function getMatchHistory(serverID, entries) {
 }
 function getPlayerStats(serverID, playerID) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
-    return database.prepare(sql).get(playerID, serverID) ?? {
-        player_name: playerID,
-        current_rating: 500,
-        max_rating: 0,
-        min_rating: 0,
-        total_matches: 0,
-        wins: 0,
-        losses: 0,
-        won_games: 0,
-        lost_games: 0,
-        current_streak: 0,
-        best_streak: 0,
-        server_id: serverID
-    }
+    return database.prepare(sql).get(playerID, serverID) ?? createPlayerEntry(playerID, serverID)
 }
 function getTableCount(tableName) {
     let sql = `SELECT * FROM ${tableName}`
@@ -54,8 +33,8 @@ function getRankedLeaderboard(serverID, orderKey = "current_rating") {
 }
 function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, secondPlayerScore, serverID) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
-    let firstPlayerStats = database.prepare(sql).get(firstPlayer, serverID) ?? createPlayerEntry(firstPlayer, serverID)
-    let secondPlayerStats = database.prepare(sql).get(secondPlayer, serverID) ?? createPlayerEntry(secondPlayer, serverID)
+    let firstPlayerStats = database.prepare(sql).get(firstPlayer, serverID)
+    let secondPlayerStats = database.prepare(sql).get(secondPlayer, serverID)
     let newFirstStat = ranked.getNewStats(firstPlayerStats, secondPlayerStats, firstPlayerScore, secondPlayerScore)
     let newSecondStat = ranked.getNewStats(secondPlayerStats, firstPlayerStats, secondPlayerScore, firstPlayerScore)
     sql = "UPDATE player_stats SET current_rating = ?, max_rating = ?, min_rating = ?, total_matches = ?, wins = ?, losses = ?, won_games = ?, lost_games = ?, current_streak = ?, best_streak = ? WHERE player_name = ? AND server_id = ?"

@@ -14,6 +14,7 @@ module.exports = {
             await interaction.reply("Seems like you didn't add enough parameters!")
             return
         }
+        // TODO Change to check if user exists
         if (!matchResult[1].startsWith("<@") || !matchResult[2].startsWith("<@")) {
             await interaction.reply("You have to enter two discord accounts, you dummy!")
             return
@@ -26,15 +27,13 @@ module.exports = {
             await interaction.reply("It seems like the result was not entered properly. Please try again")
             return
         }
-        let [firstPlayer, firstPlayerRating] = [await bot.users.fetch(matchResult[1].slice(2, -1)), db.getPlayerStats(interaction.guildId, matchResult[1])["current_rating"]]
-        let [secondPlayer, secondPlayerRating] = [await bot.users.fetch(matchResult[2].slice(2, -1)), db.getPlayerStats(interaction.guildId, matchResult[2])["current_rating"]]
+        let [firstPlayer, firstStats] = [await bot.users.fetch(matchResult[1].slice(2, -1)), db.getPlayerStats(interaction.guildId, matchResult[1])]
+        let [secondPlayer, secondStats] = [await bot.users.fetch(matchResult[2].slice(2, -1)), db.getPlayerStats(interaction.guildId, matchResult[2])]
         let isError = db.addResultToDatabase(matchResult, interaction.guildId.toString())
-        let firstPlayerAfter = db.getPlayerStats(interaction.guildId, matchResult[1])
-        let secondPlayerAfter = db.getPlayerStats(interaction.guildId, matchResult[2])
-        console.log(secondPlayer, secondPlayerRating, secondPlayerAfter)
-        let firstPlayerDifference = Math.round(firstPlayerAfter.current_rating) - Math.round(firstPlayerRating)
-        let secondPlayerDifference = Math.round(secondPlayerAfter.current_rating) - Math.round(secondPlayerRating)
-        console.log(secondPlayer, secondPlayerRating, secondPlayerAfter, secondPlayerDifference)
+        let firstStatsAfter = db.getPlayerStats(interaction.guildId, matchResult[1])
+        let secondStatsAfter = db.getPlayerStats(interaction.guildId, matchResult[2])
+        let firstPlayerDifference = Math.round(firstStatsAfter.current_rating) - Math.round(firstStats["current_rating"])
+        let secondPlayerDifference = Math.round(secondStatsAfter.current_rating) - Math.round(secondStats["current_rating"])
         if (isError) {
             await interaction.reply("Oops, im sorry, something went wrong!")
             return
@@ -51,18 +50,18 @@ module.exports = {
             })
         if (result[0] !== result[1]) {
             embed.addFields({
-                name: `${result[0] < result[1] ? secondPlayer.username : firstPlayer.username} is on a ${firstPlayerAfter.current_streak <= 0 ? secondPlayerAfter.current_streak : firstPlayerAfter.current_streak} game winning streak!`,
+                name: `${result[0] < result[1] ? secondPlayer.username : firstPlayer.username} is on a ${firstStatsAfter.current_streak <= 0 ? secondStatsAfter.current_streak : firstStatsAfter.current_streak} game winning streak!`,
                 value: '\u200b'
             })
         }
         embed.addFields({
             name: firstPlayer.globalName,
-            value: Math.round(firstPlayerRating) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstPlayerAfter.current_rating),
+            value: Math.round(firstStats["current_rating"]) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstStatsAfter.current_rating),
             inline: true
         })
         embed.addFields({
             name: secondPlayer.username,
-            value: Math.round(secondPlayerRating) + (secondPlayerDifference > 0 ? " + " : " - ") + Math.abs(secondPlayerDifference) + " :arrow_right: " + Math.round(secondPlayerAfter.current_rating),
+            value: Math.round(secondStats["current_rating"]) + (secondPlayerDifference > 0 ? " + " : " - ") + Math.abs(secondPlayerDifference) + " :arrow_right: " + Math.round(secondStatsAfter.current_rating),
             inline: true
         })
 
