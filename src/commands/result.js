@@ -30,14 +30,14 @@ module.exports = {
         let [firstPlayer, firstStats] = [await bot.users.fetch(matchResult[1].slice(2, -1)), db.getPlayerStats(interaction.guildId, matchResult[1])]
         let [secondPlayer, secondStats] = [await bot.users.fetch(matchResult[2].slice(2, -1)), db.getPlayerStats(interaction.guildId, matchResult[2])]
         let isError = db.addResultToDatabase(matchResult, interaction.guildId.toString())
+        if (isError) {
+            await interaction.reply("Oops, im sorry, something went wrong while trying to add the result to the database!")
+            return
+        }
         let firstStatsAfter = db.getPlayerStats(interaction.guildId, matchResult[1])
         let secondStatsAfter = db.getPlayerStats(interaction.guildId, matchResult[2])
         let firstPlayerDifference = Math.round(firstStatsAfter.current_rating) - Math.round(firstStats["current_rating"])
         let secondPlayerDifference = Math.round(secondStatsAfter.current_rating) - Math.round(secondStats["current_rating"])
-        if (isError) {
-            await interaction.reply("Oops, im sorry, something went wrong!")
-            return
-        }
         let result = matchResult[3].split(/[-:]/)
         let embed = new Discord.EmbedBuilder()
             .setColor(0xE8A7A1)

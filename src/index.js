@@ -20,7 +20,8 @@ const job = cron.CronJob.from({
     cronTime: '0 0 7 * * *',
     onTick: async function () {
         let daysTillStartDandadan = Math.round((new Date(2025, 6, 1, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-        await bot.channels.cache.get('1317023175300743231').send(`Es sind noch ${daysTillStartDandadan} Tage bis zur 2. Season von Dandadan!`)
+        let daysTillStartHelluva = Math.round((new Date(2025, 0, 1, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        await bot.channels.cache.get('1317023175300743231').send(`Es sind noch \n- ${daysTillStartDandadan} Tage bis zur 2. Season von Dandadan\n- ${daysTillStartHelluva} Tage bis zur 3. Season von Helluva Boss!`)
     },
     start: true,
     timeZone: 'Europe/Berlin'
@@ -123,6 +124,9 @@ bot.on("messageCreate", async (message) => {
             }
             if (message.content.toLowerCase().includes("yoshikage")) {
                 await message.reply("My name is Yoshikage Kira. I'm 33 years old. My house is in the northeast section of Morioh, where all the villas are, and I am not married. I work as an employee for the Kame Yu department stores, and I get home every day by 8 PM at the latest. I don't smoke, but I occasionally drink. I'm in bed by 11 PM, and make sure I get eight hours of sleep, no matter what. After having a glass of warm milk and doing about twenty minutes of stretches before going to bed, I usually have no problems sleeping until morning. Just like a baby, I wake up without any fatigue or stress in the morning. I was told there were no issues at my last check-up. I'm trying to explain that I'm a person who wishes to live a very quiet life. I take care not to trouble myself with any enemies, like winning and losing, that would cause me to lose sleep at night. That is how I deal with society, and I know that is what brings me happiness. Although, if I were to fight I wouldn't lose to anyone. ")
+            }
+            if (message.content.toLowerCase().includes("fitness gram")) {
+                await message.reply("The FitnessGram™ Pacer Test is a multistage aerobic capacity test that progressively gets more difficult as it continues. The 20 meter pacer test will begin in 30 seconds. Line up at the start. The running speed starts slowly, but gets faster each minute after you hear this signal. [beep] A single lap should be completed each time you hear this sound. [ding] Remember to run in a straight line, and run as long as possible. The second time you fail to complete a lap before the sound, your test is over. The test will begin on the word start. On your mark, get ready, start.")
             }
             if (message.content.toLowerCase().includes("die türken machen das unmögliche immer möglich")) {
                 await message.reply({files: [{attachment: "assets/turkiye.mov", name: "türkiye.mp4"}]})
