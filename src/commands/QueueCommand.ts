@@ -78,7 +78,7 @@ export class QueueCommand extends BaseCommand {
                     queue[guildId] = []
                 }
                 joinedPlayers = queue[guildId].map((player) => player.name)
-                let playerUser
+                let playerUser: User
 
                 try {
                     playerUser = await bot.users.fetch(args[1].slice(2, -1))
