@@ -115,9 +115,9 @@ export function updateServerReactionActivation(serverID: any, reactions: any) {
 }
 
 export function addResultToDatabase(matchResult: any[], serverID: any) {
-    let firstPlayer = matchResult[1]
-    let secondPlayer = matchResult[2]
-    let [scoreFirstPlayer, scoreSecondPlayer] = matchResult[3].split(/[-:]/)
+    let firstPlayer = matchResult[0]
+    let secondPlayer = matchResult[1]
+    let [scoreFirstPlayer, scoreSecondPlayer] = matchResult[2].split(/[-:]/)
     if(isNaN(scoreFirstPlayer) || isNaN(scoreSecondPlayer)) {
         return true // it's wild that I made it return a boolean
     }

@@ -1,47 +1,3 @@
-export class PlayerStats {
-    player_name: string
-    current_rating: number
-    max_rating: number
-    min_rating: number
-    total_matches: number
-    wins: number
-    losses: number
-    won_games: number
-    lost_games: number
-    current_streak: number
-    best_streak: number
-    server_id: string
-
-    constructor(
-        player_name: string,
-        current_rating: number,
-        max_rating: number,
-        min_rating: number,
-        total_matches: number,
-        wins: number,
-        losses: number,
-        won_games: number,
-        lost_games: number,
-        current_streak: number,
-        best_streak: number,
-        server_id: string
-    ) {
-        this.player_name = player_name
-        this.current_rating = current_rating
-        this.max_rating = max_rating
-        this.min_rating = min_rating
-        this.total_matches = total_matches
-        this.wins = wins
-        this.losses = losses
-        this.won_games = won_games
-        this.lost_games = lost_games
-        this.current_streak = current_streak
-        this.best_streak = best_streak
-        this.server_id = server_id
-    }
-
-}
-
 export function getNewStats(player: PlayerStats, opponent: PlayerStats, playerScore: number, opponentScore: number): PlayerStats {
     let expectationValuePlayer = 10 ** (player.current_rating / 400) / (10 ** (player.current_rating / 400) + 10 ** (opponent.current_rating / 400))
     let resultPlayer = (playerScore > opponentScore ? 1 : playerScore < opponentScore ? 0 : 0.5)
@@ -116,6 +72,45 @@ export function simulateSeason(matchHistory: string | any[]) {
     return Object.values(playerStatsList).sort((a, b) => b.current_rating - a.current_rating)
 }
 
+export class PlayerStats {
+    player_name: string
+    current_rating: number
+    max_rating: number
+    min_rating: number
+    total_matches: number
+    wins: number
+    losses: number
+    won_games: number
+    lost_games: number
+    current_streak: number
+    best_streak: number
+    server_id: string
 
-
-module.exports = {getNewStats, simulateSeason}
+    constructor(
+        player_name: string,
+        current_rating: number,
+        max_rating: number,
+        min_rating: number,
+        total_matches: number,
+        wins: number,
+        losses: number,
+        won_games: number,
+        lost_games: number,
+        current_streak: number,
+        best_streak: number,
+        server_id: string
+    ) {
+        this.player_name = player_name
+        this.current_rating = current_rating
+        this.max_rating = max_rating
+        this.min_rating = min_rating
+        this.total_matches = total_matches
+        this.wins = wins
+        this.losses = losses
+        this.won_games = won_games
+        this.lost_games = lost_games
+        this.current_streak = current_streak
+        this.best_streak = best_streak
+        this.server_id = server_id
+    }
+}

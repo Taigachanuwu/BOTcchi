@@ -17,43 +17,42 @@ export class ResultCommand extends BaseCommand {
 
     async execute(interaction: Message, args: string[], bot: Client): Promise<void> {
         if (!isAdmin(interaction) || !interaction.guildId || !interaction.guild) return;
-        let matchResult = interaction.content.split(" ")
-        if (matchResult.length !== 4) {
+        if (args.length !== 3) {
             await interaction.reply("Seems like you didn't add enough parameters!")
             return
         }
         // TODO Change to check if user exists
-        if (!matchResult[1].startsWith("<@") || !matchResult[2].startsWith("<@")) {
+        if (!args[0].startsWith("<@") || !args[1].startsWith("<@")) {
             await interaction.reply("You have to enter two discord accounts, you dummy!")
             return
         }
-        if (matchResult[1] === matchResult[2]) {
+        if (args[0] === args[1]) {
             await interaction.reply("You have to enter two **different** discord accounts, silly. :3")
             return
         }
-        if (!matchResult[3].includes("-") && !matchResult[3].includes(":")) {
+        if (!args[2].includes("-") && !args[2].includes(":")) {
             await interaction.reply("It seems like the result was not entered properly. Please try again")
             return
         }
-        let [firstPlayer, firstStats] = [await bot.users.fetch(matchResult[1].slice(2, -1)), getPlayerStats(interaction.guildId, matchResult[1])]
-        let [secondPlayer, secondStats] = [await bot.users.fetch(matchResult[2].slice(2, -1)), getPlayerStats(interaction.guildId, matchResult[2])]
-        let isError = addResultToDatabase(matchResult, interaction.guildId.toString())
+        let [firstPlayer, firstStats] = [await bot.users.fetch(args[0].slice(2, -1)), getPlayerStats(interaction.guildId, args[0])]
+        let [secondPlayer, secondStats] = [await bot.users.fetch(args[1].slice(2, -1)), getPlayerStats(interaction.guildId, args[1])]
+        let isError = addResultToDatabase(args, interaction.guildId.toString())
         if (isError) {
             await interaction.reply("Oops, im sorry, something went wrong while trying to add the result to the database!")
             return
         }
-        let firstStatsAfter = getPlayerStats(interaction.guildId, matchResult[1])
-        let secondStatsAfter = getPlayerStats(interaction.guildId, matchResult[2])
+        let firstStatsAfter = getPlayerStats(interaction.guildId, args[0])
+        let secondStatsAfter = getPlayerStats(interaction.guildId, args[1])
         let firstPlayerDifference = Math.round(firstStatsAfter.current_rating) - Math.round(firstStats["current_rating"])
         let secondPlayerDifference = Math.round(secondStatsAfter.current_rating) - Math.round(secondStats["current_rating"])
-        let result = matchResult[3].split(/[-:]/)
+        let result = args[2].split(/[-:]/)
         let embed = new Discord.EmbedBuilder()
             .setColor(0xE8A7A1)
             .setTitle('Match Result')
             .setThumbnail(interaction.guild.iconURL())
             .setTimestamp()
             .addFields({
-                name: `${firstPlayer.username} ->  ${matchResult[3]}  <- ${secondPlayer.username}`,
+                name: `${firstPlayer.username} ->  ${args[2]}  <- ${secondPlayer.username}`,
                 value: '\u200b'
             })
         if (result[0] !== result[1]) {

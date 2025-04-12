@@ -2,7 +2,6 @@ import {TextChannel} from "discord.js"
 require("dotenv").config()
 import cron = require("cron")
 import Discord = require("discord.js")
-// @ts-ignore
 import {createReactionsEntry, isReactionActivated} from "./commands/utility/database"
 import {CronJob} from "cron"
 import {CommandHandler} from "./commands/model/CommandHandler"
