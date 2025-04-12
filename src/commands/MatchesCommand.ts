@@ -1,7 +1,7 @@
 import {BaseCommand} from "./model/BaseCommand";
 import {Client, Message} from "discord.js";
 
-const db = require("./utility/database");
+import {getMatchHistory} from "./utility/database";
 const Discord = require("discord.js");
 
 export class MatchesCommand extends BaseCommand {
@@ -15,11 +15,11 @@ export class MatchesCommand extends BaseCommand {
     }
 
     async execute(interaction: Message, args: string[], bot: Client): Promise<void> {
-        let entries = args.length === 0 ? 5 : args[0]
+        let entries = args.length === 0 ? 5 : +args[0]
         if(!interaction.guild || !interaction.guildId){
             return
         }
-        const matchHistory = db.getMatchHistory(interaction.guildId.toString(), entries)
+        const matchHistory = getMatchHistory(interaction.guildId.toString(), entries)
         let embed = []
         for (let i = 0; i < matchHistory.length; i++) {
             let page = Math.floor(i / 25)

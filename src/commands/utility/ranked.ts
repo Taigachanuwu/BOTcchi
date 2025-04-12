@@ -1,4 +1,4 @@
-class PlayerStats {
+export class PlayerStats {
     player_name: string
     current_rating: number
     max_rating: number
@@ -42,7 +42,7 @@ class PlayerStats {
 
 }
 
-function getNewStats(player: PlayerStats, opponent: PlayerStats, playerScore: number, opponentScore: number): PlayerStats {
+export function getNewStats(player: PlayerStats, opponent: PlayerStats, playerScore: number, opponentScore: number): PlayerStats {
     let expectationValuePlayer = 10 ** (player.current_rating / 400) / (10 ** (player.current_rating / 400) + 10 ** (opponent.current_rating / 400))
     let resultPlayer = (playerScore > opponentScore ? 1 : playerScore < opponentScore ? 0 : 0.5)
     let newRating = player.current_rating + 50 * (resultPlayer - expectationValuePlayer)
@@ -72,7 +72,7 @@ function getNewStats(player: PlayerStats, opponent: PlayerStats, playerScore: nu
     )
 }
 
-function simulateSeason(matchHistory: string | any[]) {
+export function simulateSeason(matchHistory: string | any[]) {
     let playerStatsList: Record<string, PlayerStats> = {}
     for (let i = 0; i < matchHistory.length; i++) {
         let [firstPlayer, secondPlayer] = [matchHistory[i]["first_player"], matchHistory[i]["second_player"]]

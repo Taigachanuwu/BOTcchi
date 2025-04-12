@@ -1,7 +1,7 @@
 import {BaseCommand} from "./model/BaseCommand";
 import {Client, Message, MessageReaction, User} from "discord.js";
 
-const Discord = require("discord.js");
+import Discord from "discord.js";
 let queue: Record<string, Array<{name: User, message: string}>> = {}
 
 export class QueueCommand extends BaseCommand {

@@ -1,52 +1,79 @@
 require("dotenv").config()
-const ranked = require("./ranked");
+import {getNewStats, simulateSeason, PlayerStats} from "./ranked";
 const database = require("better-sqlite3")(process.env.FILE_PATH)
 
-function createPlayerEntry(player: any, serverID: any){
+export function createPlayerEntry(player: any, serverID: any){
     let sql = "INSERT INTO player_stats VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
     database.prepare(sql).run(player,500,500,500,0,0,0,0,0,0,0, serverID)
     sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_ID = ?"
     return database.prepare(sql).get(player, serverID)
 }
-function createReactionsEntry(channelID: any, serverID: any) {
+export function createReactionsEntry(channelID: any, serverID: any) {
     let statement = "SELECT * FROM reactions WHERE channel_id = ?"
     if (!database.prepare(statement).get(channelID)) {
         let sql = "INSERT INTO reactions VALUES(?,?,false)"
         database.prepare(sql).run(channelID,serverID)
     }
 }
-function getMatchHistory(serverID: any, entries: undefined) {
+export function getMatchHistory(serverID: any, entries: number|null = null) {
     let sql = `SELECT * FROM matches WHERE server_id = ? ORDER BY id DESC`
     return database.prepare(sql).all(serverID).slice(0, entries)
 }
-function getPlayerStats(serverID: any, playerID: any) {
+export function getPlayerStats(serverID: any, playerID: any) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
     return database.prepare(sql).get(playerID, serverID) ?? createPlayerEntry(playerID, serverID)
 }
-function getTableCount(tableName: string) {
+export function getTableCount(tableName: string) {
     let sql = `SELECT * FROM ${tableName}`
     return database.prepare(sql).all().length
 }
-function getRankedLeaderboard(serverID: any, orderKey = "current_rating") {
+export function getRankedLeaderboard(serverID: any, orderKey = "current_rating") {
     let sql = `SELECT * FROM player_stats WHERE server_id = ? ORDER BY ? DESC`
     return database.prepare(sql).all(serverID, orderKey)
 }
-function getRankedLeaderboardSeason(serverID: any, season = null) {
+export function getRankedLeaderboardSeason(serverID: any, season: number|null = null) {
     let timestamp = new Date()
     let currentSeason = season ?? 2 * (timestamp.getFullYear() - 2025) + (timestamp.getMonth() < 6 ? 1 : 2)
     let startDate = new Date(2025 + Math.floor(currentSeason/2), currentSeason % 2 === 0 ? 6 : 0, 1, 0, 0, 0)
     let endDate = new Date(startDate)
     endDate = new Date(endDate.setMonth(endDate.getMonth() + 6))
-    // @ts-ignore
-    let seasonHistory = getMatchHistory(serverID).filter(entry => new Date(entry["date"]).getTime() >= startDate.getTime() && new Date(entry["date"]).getTime() < endDate.getTime())
-    return ranked.simulateSeason(seasonHistory)
+    let seasonHistory = getMatchHistory(serverID).filter((entry: { [x: string]: string | number | Date; }) => new Date(entry["date"]).getTime() >= startDate.getTime() && new Date(entry["date"]).getTime() < endDate.getTime())
+    return simulateSeason(seasonHistory)
 }
-function updateStatsDatabase(firstPlayer: any, secondPlayer: any, firstPlayerScore: any, secondPlayerScore: any, serverID: any) {
+export function updateStatsDatabase(firstPlayer: any, secondPlayer: any, firstPlayerScore: any, secondPlayerScore: any, serverID: any) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
-    let firstPlayerStats = database.prepare(sql).get(firstPlayer, serverID)
-    let secondPlayerStats = database.prepare(sql).get(secondPlayer, serverID)
-    let newFirstStat = ranked.getNewStats(firstPlayerStats, secondPlayerStats, firstPlayerScore, secondPlayerScore)
-    let newSecondStat = ranked.getNewStats(secondPlayerStats, firstPlayerStats, secondPlayerScore, firstPlayerScore)
+    let databaseExcerpt = database.prepare(sql).get(firstPlayer, serverID)
+    let firstPlayerStats = new PlayerStats(
+        databaseExcerpt["player_name"],
+        databaseExcerpt["current_rating"],
+        databaseExcerpt["max_rating"],
+        databaseExcerpt["min_rating"],
+        databaseExcerpt["total_matches"],
+        databaseExcerpt["wins"],
+        databaseExcerpt["losses"],
+        databaseExcerpt["won_games"],
+        databaseExcerpt["lost_games"],
+        databaseExcerpt["current_streak"],
+        databaseExcerpt["best_streak"],
+        databaseExcerpt["server_id"]
+    )
+    databaseExcerpt = database.prepare(sql).get(secondPlayer, serverID)
+    let secondPlayerStats = new PlayerStats(
+        databaseExcerpt["player_name"],
+        databaseExcerpt["current_rating"],
+        databaseExcerpt["max_rating"],
+        databaseExcerpt["min_rating"],
+        databaseExcerpt["total_matches"],
+        databaseExcerpt["wins"],
+        databaseExcerpt["losses"],
+        databaseExcerpt["won_games"],
+        databaseExcerpt["lost_games"],
+        databaseExcerpt["current_streak"],
+        databaseExcerpt["best_streak"],
+        databaseExcerpt["server_id"]
+    )
+    let newFirstStat: PlayerStats = getNewStats(firstPlayerStats, secondPlayerStats, firstPlayerScore, secondPlayerScore)
+    let newSecondStat: PlayerStats = getNewStats(secondPlayerStats, firstPlayerStats, secondPlayerScore, firstPlayerScore)
     sql = "UPDATE player_stats SET current_rating = ?, max_rating = ?, min_rating = ?, total_matches = ?, wins = ?, losses = ?, won_games = ?, lost_games = ?, current_streak = ?, best_streak = ? WHERE player_name = ? AND server_id = ?"
     database.prepare(sql).run(
         newFirstStat["current_rating"],
@@ -77,17 +104,17 @@ function updateStatsDatabase(firstPlayer: any, secondPlayer: any, firstPlayerSco
         serverID
     )
 }
-function updateReactionActivation(channelID: any, reactions: any) {
+export function updateReactionActivation(channelID: any, reactions: any) {
     let sql = "UPDATE reactions SET activated = ? WHERE channel_id = ?"
     database.prepare(sql).run(reactions ? 1 : 0, channelID)
 }
 
-function updateServerReactionActivation(serverID: any, reactions: any) {
+export function updateServerReactionActivation(serverID: any, reactions: any) {
     let sql = "UPDATE reactions SET activated = ? WHERE server_id = ?"
     database.prepare(sql).run(reactions ? 1 : 0, serverID)
 }
 
-function addResultToDatabase(matchResult: any[], serverID: any) {
+export function addResultToDatabase(matchResult: any[], serverID: any) {
     let firstPlayer = matchResult[1]
     let secondPlayer = matchResult[2]
     let [scoreFirstPlayer, scoreSecondPlayer] = matchResult[3].split(/[-:]/)
@@ -102,9 +129,7 @@ function addResultToDatabase(matchResult: any[], serverID: any) {
     return false
 }
 
-function isReactionActivated(channelID: any) {
+export function isReactionActivated(channelID: any) {
     let sql = "SELECT activated FROM reactions WHERE channel_id = ?"
     return database.prepare(sql).get(channelID)["activated"]
 }
-
-module.exports = {createReactionsEntry, getMatchHistory, getPlayerStats, getRankedLeaderboard, getRankedLeaderboardSeason, updateReactionActivation, updateServerReactionActivation, addResultToDatabase, isReactionActivated}

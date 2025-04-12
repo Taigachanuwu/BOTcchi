@@ -1,6 +1,5 @@
 import {BaseCommand} from "./model/BaseCommand";
 import {Client, Message, User} from "discord.js";
-// @ts-ignore
 import {getRankedLeaderboard} from "./utility/database";
 
 const orderKeys = [

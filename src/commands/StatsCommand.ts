@@ -1,8 +1,8 @@
 import {BaseCommand} from "./model/BaseCommand";
 import {Client, Message} from "discord.js";
 
-// @ts-ignore
-import db from "./utility/database";
+
+import {getPlayerStats} from "./utility/database";
 import Discord from "discord.js";
 
 // TO DO: person specific query
@@ -21,7 +21,7 @@ export class StatsCommand extends BaseCommand {
         if (!interaction.guildId) return
         let playerID = args.length === 0 ? "<@" + interaction.author.id + ">" : args[0]
         let player = await bot.users.fetch(playerID.slice(2, -1)).then(player => player.avatarURL())
-        let playerStats = db.getPlayerStats(interaction.guildId.toString(), playerID)
+        let playerStats = getPlayerStats(interaction.guildId.toString(), playerID)
         let embed = new Discord.EmbedBuilder()
             .setColor(0xE8A7A1)
             .setTitle('Player Stats')

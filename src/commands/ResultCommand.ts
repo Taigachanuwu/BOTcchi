@@ -1,8 +1,7 @@
 import {BaseCommand} from "./model/BaseCommand";
 import {Client, Message} from "discord.js";
 
-// @ts-ignore
-import db from "./utility/database";
+import {getPlayerStats, addResultToDatabase} from "./utility/database";
 import Discord from "discord.js";
 import {isAdmin} from "./utility/helpers";
 
@@ -36,15 +35,15 @@ export class ResultCommand extends BaseCommand {
             await interaction.reply("It seems like the result was not entered properly. Please try again")
             return
         }
-        let [firstPlayer, firstStats] = [await bot.users.fetch(matchResult[1].slice(2, -1)), db.getPlayerStats(interaction.guildId, matchResult[1])]
-        let [secondPlayer, secondStats] = [await bot.users.fetch(matchResult[2].slice(2, -1)), db.getPlayerStats(interaction.guildId, matchResult[2])]
-        let isError = db.addResultToDatabase(matchResult, interaction.guildId.toString())
+        let [firstPlayer, firstStats] = [await bot.users.fetch(matchResult[1].slice(2, -1)), getPlayerStats(interaction.guildId, matchResult[1])]
+        let [secondPlayer, secondStats] = [await bot.users.fetch(matchResult[2].slice(2, -1)), getPlayerStats(interaction.guildId, matchResult[2])]
+        let isError = addResultToDatabase(matchResult, interaction.guildId.toString())
         if (isError) {
             await interaction.reply("Oops, im sorry, something went wrong while trying to add the result to the database!")
             return
         }
-        let firstStatsAfter = db.getPlayerStats(interaction.guildId, matchResult[1])
-        let secondStatsAfter = db.getPlayerStats(interaction.guildId, matchResult[2])
+        let firstStatsAfter = getPlayerStats(interaction.guildId, matchResult[1])
+        let secondStatsAfter = getPlayerStats(interaction.guildId, matchResult[2])
         let firstPlayerDifference = Math.round(firstStatsAfter.current_rating) - Math.round(firstStats["current_rating"])
         let secondPlayerDifference = Math.round(secondStatsAfter.current_rating) - Math.round(secondStats["current_rating"])
         let result = matchResult[3].split(/[-:]/)

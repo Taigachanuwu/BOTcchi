@@ -1,7 +1,7 @@
 import {BaseCommand} from "./model/BaseCommand";
 import {Client, Message, User} from "discord.js";
-// @ts-ignore
 import {getRankedLeaderboardSeason} from "./utility/database";
+import {PlayerStats} from "./utility/ranked";
 
 export class SeasonCommand extends BaseCommand {
     constructor() {
@@ -19,7 +19,7 @@ export class SeasonCommand extends BaseCommand {
         }
         let argument = !!args[0] ? parseFloat(args[0]) : null
         let leaderboard
-        if (argument === null || isNaN(argument)) {
+        if (argument === null || !isNaN(argument)) {
             leaderboard = getRankedLeaderboardSeason(interaction.guildId)
         } else {
             leaderboard = getRankedLeaderboardSeason(interaction.guildId, argument)
@@ -32,7 +32,7 @@ export class SeasonCommand extends BaseCommand {
         }
         interaction.channel.send("```" + (leaderboard.length !== 0 ? messageReply : "There are no records for this season") + "```")
     }
-    private buildTable(stats: Record<string, string>, user: User, messageReply: string, i: number) :string {
+    private buildTable(stats: PlayerStats, user: User, messageReply: string, i: number) :string {
         let secondLine = "Games Played: ".padStart(24, " ") + stats["total_matches"].toString().padEnd(4, " ") + "--->" + stats["wins"].toString().padStart(3," ") + stats["losses"].toString().padStart(5," ") + (+stats["total_matches"] - +stats["wins"] - +stats["losses"]).toString().padStart(5," ") + "\n"
         let thirdLine = "Highest / Lowest: --->".padStart(32, " ") + ` ${Math.round(+stats["max_rating"])} MMR / ${Math.round(+stats["min_rating"])} MMR\n`
         messageReply += `${("<" + (i + 1) + ">:").padEnd(7, " ")}-> ${user.globalName ? user.globalName : user.username} - ${Math.round(+stats["current_rating"])} MMR\n`

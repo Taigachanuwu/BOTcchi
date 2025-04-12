@@ -1,6 +1,5 @@
 import {BaseCommand} from "./model/BaseCommand";
 import {Client, Message} from "discord.js";
-// @ts-ignore
 import {updateReactionActivation, isReactionActivated, updateServerReactionActivation} from "./utility/database";
 import {isAdmin} from "./utility/helpers";
 

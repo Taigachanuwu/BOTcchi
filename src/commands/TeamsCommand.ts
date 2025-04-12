@@ -1,7 +1,6 @@
 import {BaseCommand} from "./model/BaseCommand";
 import {Client, Message} from "discord.js";
-
-const Discord = require("discord.js");
+import Discord from "discord.js";
 
 export class TeamsCommand extends BaseCommand {
     constructor() {
