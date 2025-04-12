@@ -1,7 +1,12 @@
+import {TextChannel} from "discord.js"
 require("dotenv").config()
-const cron = require("cron");
-const Discord = require("discord.js")
-const {createReactionsEntry, isReactionActivated} = require("./commands/utility/database");
+import cron = require("cron")
+import Discord = require("discord.js")
+// @ts-ignore
+import {createReactionsEntry, isReactionActivated} from "./commands/utility/database"
+import {CronJob} from "cron"
+import {CommandHandler} from "./commands/model/CommandHandler"
+
 const bot = new Discord.Client({
     intents: [
         Discord.IntentsBitField.Flags.Guilds,
@@ -13,29 +18,28 @@ const bot = new Discord.Client({
         Discord.IntentsBitField.Flags.GuildVoiceStates
     ],
 })
-const fs = require("fs");
-const commandFiles = fs.readdirSync("src/commands").filter(file => file.endsWith(".js") || file.endsWith(".ts"));
-// https://discord.com/channels/1317023174361354282/1317023175300743231
-const job = cron.CronJob.from({
+let job: CronJob
+job = cron.CronJob.from({
     cronTime: '0 0 7 * * *',
     onTick: async function () {
         let daysTillStartDandadan = Math.round((new Date(2025, 6, 1, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         let daysTillStartHelluva = Math.round((new Date(2026, 0, 1, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-        await bot.channels.cache.get('1317023175300743231').send(`Es sind noch \n- ${daysTillStartDandadan} Tage bis zur 2. Season von Dandadan\n- ${daysTillStartHelluva} Tage bis zur 3. Season von Helluva Boss!`)
+        await (bot.channels.cache.get('1317023175300743231') as TextChannel).send(`Es sind noch \n- ${daysTillStartDandadan} Tage bis zur 2. Season von Dandadan\n- ${daysTillStartHelluva} Tage bis zur 3. Season von Helluva Boss!`)
     },
     start: true,
     timeZone: 'Europe/Berlin'
-});
-const DoTeapot = cron.CronJob.from({
+})
+let DoTeapot: CronJob
+DoTeapot = cron.CronJob.from({
     cronTime: '0 0 17 * * 0,3',
     onTick: async function () {
         let user = "<@469447356195143680>"
         let message = `Don't forget picking up the plants in the teapot, ${user}!`
-        await bot.channels.cache.get("1317246524828291154").send(message)
+        await (bot.channels.cache.get("1317246524828291154") as TextChannel).send(message)
     },
     start: true,
     timeZone: 'Europe/Berlin'
-});
+})
 
 let statuses = [
     "Bitch, you just jealous of my super saiyan swagger",
@@ -71,31 +75,31 @@ let statuses = [
     "I like me some good turkish rotational ham",
     "The source is that I made it the fuck up"
 ]
-
-bot.commands = new Discord.Collection();
-for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    bot.commands.set(command.name, command);
-}
-let prefix
 async function getChannelIds() {
     const discordServers = bot.guilds.cache;
     let channels = discordServers.map(discordServer => discordServer.channels.cache)
-    channels = channels.map(guild => guild.map(channel => [channel.id, channel.guildId])).flat()
-    return channels
+    return channels.map(guild => guild.map(channel => [channel.id, channel.guildId])).flat();
 }
 
-bot.on("ready", (c) => {
+export let commandHandler: CommandHandler
+let prefix: string
+bot.on("ready",async (c) => {
     console.log(c.user.tag.split("#")[0] + " is ready uwu")
-    prefix = bot.user.tag === "TESTcchi#3381" ? "_" : "!"
+    if(bot.user !== null) {
+        prefix = bot.user.tag === "TESTcchi#3381" ? "_" : "!"
+    }
     getChannelIds().then(channels => channels.forEach(channel => createReactionsEntry(channel[0], channel[1])))
     setInterval(() => {
         let randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-        bot.user.setActivity({
-            name: randomStatus,
-            type: Discord.ActivityType.Custom
-        });
+        if(bot.user !== null) {
+            bot.user.setActivity({
+                name: randomStatus,
+                type: Discord.ActivityType.Custom
+            });
+        }
     }, 5 * 60 * 1000);
+    commandHandler = new CommandHandler(bot, prefix)
+    await commandHandler.loadCommands("src/commands")
 })
 bot.on("guildCreate", (c) => {
     console.log("Joined " + c.name)
@@ -173,21 +177,13 @@ bot.on("messageCreate", async (message) => {
                 })
             }
         }
-        if (!message.content.startsWith(prefix)) return;
-        const args = message.content.slice(prefix.length).split(/ +/);
-        const commandName = args.shift().toLowerCase();
-        const command = bot.commands.get(commandName);
-        if (!command) return;
-        try {
-            await command.execute(message, args, bot);
-        } catch (error) {
-            console.error(error);
-            await message.reply("There was an error trying to execute that command!");
-        }
+        await commandHandler.handleMessage(message)
     } catch (e) {
         console.log(e)
         await message.reply("Oops, seems like I caught an error.")
     }
-})
+});
 
-bot.login(process.env.DISCORD_BOT_KEY)
+(async () => {
+    await bot.login(process.env.DISCORD_BOT_KEY)
+})()

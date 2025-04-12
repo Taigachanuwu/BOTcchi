@@ -2,45 +2,46 @@ require("dotenv").config()
 const ranked = require("./ranked");
 const database = require("better-sqlite3")(process.env.FILE_PATH)
 
-function createPlayerEntry(player, serverID){
+function createPlayerEntry(player: any, serverID: any){
     let sql = "INSERT INTO player_stats VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
     database.prepare(sql).run(player,500,500,500,0,0,0,0,0,0,0, serverID)
     sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_ID = ?"
     return database.prepare(sql).get(player, serverID)
 }
-function createReactionsEntry(channelID, serverID) {
+function createReactionsEntry(channelID: any, serverID: any) {
     let statement = "SELECT * FROM reactions WHERE channel_id = ?"
     if (!database.prepare(statement).get(channelID)) {
         let sql = "INSERT INTO reactions VALUES(?,?,false)"
         database.prepare(sql).run(channelID,serverID)
     }
 }
-function getMatchHistory(serverID, entries) {
+function getMatchHistory(serverID: any, entries: undefined) {
     let sql = `SELECT * FROM matches WHERE server_id = ? ORDER BY id DESC`
     return database.prepare(sql).all(serverID).slice(0, entries)
 }
-function getPlayerStats(serverID, playerID) {
+function getPlayerStats(serverID: any, playerID: any) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
     return database.prepare(sql).get(playerID, serverID) ?? createPlayerEntry(playerID, serverID)
 }
-function getTableCount(tableName) {
+function getTableCount(tableName: string) {
     let sql = `SELECT * FROM ${tableName}`
     return database.prepare(sql).all().length
 }
-function getRankedLeaderboard(serverID, orderKey = "current_rating") {
+function getRankedLeaderboard(serverID: any, orderKey = "current_rating") {
     let sql = `SELECT * FROM player_stats WHERE server_id = ? ORDER BY ? DESC`
     return database.prepare(sql).all(serverID, orderKey)
 }
-function getRankedLeaderboardSeason(serverID, season = null) {
+function getRankedLeaderboardSeason(serverID: any, season = null) {
     let timestamp = new Date()
     let currentSeason = season ?? 2 * (timestamp.getFullYear() - 2025) + (timestamp.getMonth() < 6 ? 1 : 2)
     let startDate = new Date(2025 + Math.floor(currentSeason/2), currentSeason % 2 === 0 ? 6 : 0, 1, 0, 0, 0)
     let endDate = new Date(startDate)
     endDate = new Date(endDate.setMonth(endDate.getMonth() + 6))
+    // @ts-ignore
     let seasonHistory = getMatchHistory(serverID).filter(entry => new Date(entry["date"]).getTime() >= startDate.getTime() && new Date(entry["date"]).getTime() < endDate.getTime())
     return ranked.simulateSeason(seasonHistory)
 }
-function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, secondPlayerScore, serverID) {
+function updateStatsDatabase(firstPlayer: any, secondPlayer: any, firstPlayerScore: any, secondPlayerScore: any, serverID: any) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
     let firstPlayerStats = database.prepare(sql).get(firstPlayer, serverID)
     let secondPlayerStats = database.prepare(sql).get(secondPlayer, serverID)
@@ -76,17 +77,17 @@ function updateStatsDatabase(firstPlayer, secondPlayer, firstPlayerScore, second
         serverID
     )
 }
-function updateReactionActivation(channelID, reactions) {
+function updateReactionActivation(channelID: any, reactions: any) {
     let sql = "UPDATE reactions SET activated = ? WHERE channel_id = ?"
     database.prepare(sql).run(reactions ? 1 : 0, channelID)
 }
 
-function updateServerReactionActivation(serverID, reactions) {
+function updateServerReactionActivation(serverID: any, reactions: any) {
     let sql = "UPDATE reactions SET activated = ? WHERE server_id = ?"
     database.prepare(sql).run(reactions ? 1 : 0, serverID)
 }
 
-function addResultToDatabase(matchResult, serverID) {
+function addResultToDatabase(matchResult: any[], serverID: any) {
     let firstPlayer = matchResult[1]
     let secondPlayer = matchResult[2]
     let [scoreFirstPlayer, scoreSecondPlayer] = matchResult[3].split(/[-:]/)
@@ -101,7 +102,7 @@ function addResultToDatabase(matchResult, serverID) {
     return false
 }
 
-function isReactionActivated(channelID) {
+function isReactionActivated(channelID: any) {
     let sql = "SELECT activated FROM reactions WHERE channel_id = ?"
     return database.prepare(sql).get(channelID)["activated"]
 }

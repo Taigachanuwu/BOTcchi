@@ -1,14 +1,24 @@
+import {BaseCommand} from "./model/BaseCommand";
+import {Client, Message} from "discord.js";
+
 const db = require("./utility/database");
 const Discord = require("discord.js");
 
-module.exports = {
-    name: "matches",
-    description: "Returns the last matches played on this server. \nUsage: !matches { optional: number, default: 5 }",
-    permissions: "user",
-    category: "ranked",
-    async execute(interaction, args) {
+export class MatchesCommand extends BaseCommand {
+    constructor() {
+        super(
+            "matches",
+            "Returns the last matches played on this server. \nUsage: !matches { optional: number, default: 5 }",
+            ["user"],
+            "ranked",
+        )
+    }
+
+    async execute(interaction: Message, args: string[], bot: Client): Promise<void> {
         let entries = args.length === 0 ? 5 : args[0]
-        console.log(entries)
+        if(!interaction.guild || !interaction.guildId){
+            return
+        }
         const matchHistory = db.getMatchHistory(interaction.guildId.toString(), entries)
         let embed = []
         for (let i = 0; i < matchHistory.length; i++) {
@@ -28,5 +38,5 @@ module.exports = {
             })
         }
         await interaction.reply({embeds: [...embed]})
-    },
-};
+    }
+}

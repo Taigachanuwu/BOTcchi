@@ -1,22 +1,37 @@
+import {BaseCommand} from "./model/BaseCommand";
+import {Client, Message} from "discord.js";
+
 const Discord = require("discord.js");
-module.exports = {
-    name: "teams",
-    description: "Creates two random teams out of the people currently in the voice chat. \nUsage: !teams { optional: [number of players] }",
-    permissions: "user",
-    category: "general",
-    async execute(interaction, args) {
+
+export class TeamsCommand extends BaseCommand {
+    constructor() {
+        super(
+            "teams",
+            "Creates two random teams out of the people currently in the voice chat. \nUsage: !teams { optional: [number of players] }",
+            ["user"],
+            "general",
+        )
+    }
+
+    async execute(interaction: Message, args: string[], bot: Client): Promise<void> {
+        if (!interaction.guild) {
+            return
+        }
         const member = interaction.guild.members.cache.get(interaction.author.id)
+        if (!member || !member.voice.channel) {
+            return
+        }
         let players = member.voice.channel.members.map(player => player.displayName)
         const playerAmount = players.length // isNaN(+args[0]) ? players.length : +args[0]
         if(playerAmount < 2) {
-            interaction.reply("There have to be at least 2 players to create random teams.")
+            await interaction.reply("There have to be at least 2 players to create random teams.")
             return
         }
         if (players.length < playerAmount) {
-            interaction.reply("It seems like there are not enough people in the voice chat to create two teams. Please name the remaining players")
+            await interaction.reply("It seems like there are not enough people in the voice chat to create two teams. Please name the remaining players")
             // create event listener for next message of member
         } else if(players.length > playerAmount) {
-            interaction.reply("It seems like there are too many people in the voice chat to create two teams. Please name the non-participating people")
+            await interaction.reply("It seems like there are too many people in the voice chat to create two teams. Please name the non-participating people")
             // create event listener for names in players array
         } else {
             let randomizedPlayers = players.sort(function() { return 0.5 - Math.random();})
@@ -35,7 +50,7 @@ module.exports = {
                     name: "Team 2:",
                     value: secondTeam.join("\n")
                 })
-            interaction.reply({embeds: [embed]})
+            await interaction.reply({embeds: [embed]})
         }
-    },
-};
+    }
+}

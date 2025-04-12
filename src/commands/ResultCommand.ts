@@ -1,14 +1,23 @@
-const db = require("./utility/database");
-const Discord = require("discord.js");
-const {isAdmin} = require("./utility/helpers")
+import {BaseCommand} from "./model/BaseCommand";
+import {Client, Message} from "discord.js";
 
-module.exports = {
-    name: "result",
-    description: "Adds a result between two players to the ranked database. \nUsage: !result [Discord Tag] [Discord Tag] [Score P1 - Score P2]",
-    permissions: "admin",
-    category: "ranked",
-    async execute(interaction, args, bot) {
-        if (!isAdmin(interaction)) return;
+// @ts-ignore
+import db from "./utility/database";
+import Discord from "discord.js";
+import {isAdmin} from "./utility/helpers";
+
+export class ResultCommand extends BaseCommand {
+    constructor() {
+        super(
+            "result",
+            "Adds a result between two players to the ranked database. \nUsage: !result [Discord Tag] [Discord Tag] [Score P1 - Score P2]",
+            ["admin"],
+            "ranked",
+        )
+    }
+
+    async execute(interaction: Message, args: string[], bot: Client): Promise<void> {
+        if (!isAdmin(interaction) || !interaction.guildId || !interaction.guild) return;
         let matchResult = interaction.content.split(" ")
         if (matchResult.length !== 4) {
             await interaction.reply("Seems like you didn't add enough parameters!")
@@ -55,7 +64,7 @@ module.exports = {
             })
         }
         embed.addFields({
-            name: firstPlayer.globalName,
+            name: firstPlayer.username,
             value: Math.round(firstStats["current_rating"]) + (firstPlayerDifference > 0 ? " + " : " - ") + Math.abs(firstPlayerDifference) + " :arrow_right: " + Math.round(firstStatsAfter.current_rating),
             inline: true
         })
@@ -66,5 +75,5 @@ module.exports = {
         })
 
         await interaction.reply({embeds: [embed]})
-    },
-};
+    }
+}

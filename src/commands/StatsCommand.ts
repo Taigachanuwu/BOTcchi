@@ -1,15 +1,24 @@
-const db = require("./utility/database");
-const Discord = require("discord.js");
+import {BaseCommand} from "./model/BaseCommand";
+import {Client, Message} from "discord.js";
 
+// @ts-ignore
+import db from "./utility/database";
+import Discord from "discord.js";
 
 // TO DO: person specific query
-module.exports = {
-    name: "stats",
-    description: "Returns the stats of the user or the tagged person. \nUsage: !stats { optional: Discord Tag, default: user }",
-    permissions: "user",
-    category: "ranked",
-    async execute(interaction, args, bot) {
+export class StatsCommand extends BaseCommand {
+    constructor() {
+        super(
+            "stats",
+            "Returns the stats of the user or the tagged person. \nUsage: !stats { optional: Discord Tag, default: user }",
+            ["user"],
+            "ranked",
+        )
+    }
+
+    async execute(interaction: Message, args: string[], bot: Client): Promise<void> {
         // need to check if message argument is a discord user or not
+        if (!interaction.guildId) return
         let playerID = args.length === 0 ? "<@" + interaction.author.id + ">" : args[0]
         let player = await bot.users.fetch(playerID.slice(2, -1)).then(player => player.avatarURL())
         let playerStats = db.getPlayerStats(interaction.guildId.toString(), playerID)
@@ -52,5 +61,5 @@ module.exports = {
             },)
 
         await interaction.reply({embeds: [embed]})
-    },
-};
+    }
+}
