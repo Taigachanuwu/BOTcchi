@@ -1,5 +1,8 @@
+import {Artifact} from "../model/genshinArtifactSimulator/Artifact";
+
 require("dotenv").config()
 import {getNewStats, simulateSeason, PlayerStats} from "./ranked";
+import {Message} from "discord.js";
 const database = require("better-sqlite3")(process.env.FILE_PATH)
 
 export function createPlayerEntry(player: any, serverID: any){
@@ -132,4 +135,28 @@ export function addResultToDatabase(matchResult: any[], serverID: any) {
 export function isReactionActivated(channelID: any) {
     let sql = "SELECT activated FROM reactions WHERE channel_id = ?"
     return database.prepare(sql).get(channelID)["activated"]
+}
+
+export function pushArtifact(message: Message, artifact: Artifact) {
+    console.log(artifact.set)
+    let sql = "INSERT INTO artifacts (user_id, 'set', artifact_type, mainstat, mainstat_level, first_substat, first_substat_value, first_substat_rolls, second_substat, second_substat_value, second_substat_rolls, third_stat, third_stat_value, third_stat_rolls, fourth_stat, fourth_stat_value, fourth_stat_rolls) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    database.prepare(sql).run(
+        message.author.id,
+        artifact.set,
+        artifact.type.toString(),
+        artifact.mainstat.toString(),
+        artifact.mainstat.getLevel(),
+        artifact.substats[0].toString(),
+        artifact.substats[0].getRolls(),
+        artifact.substats[0].getLevel(),
+        artifact.substats[1].toString(),
+        artifact.substats[1].getRolls(),
+        artifact.substats[1].getLevel(),
+        artifact.substats[2].toString(),
+        artifact.substats[2].getRolls(),
+        artifact.substats[2].getLevel(),
+        artifact.substats[3] ? artifact.substats[3].toString() : null,
+        artifact.substats[3] ? artifact.substats[3].getRolls() : null,
+        artifact.substats[3] ? artifact.substats[3].getLevel() : null
+    )
 }

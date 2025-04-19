@@ -2,9 +2,11 @@ import {TextChannel} from "discord.js"
 require("dotenv").config()
 import cron = require("cron")
 import Discord = require("discord.js")
-import {createReactionsEntry, isReactionActivated} from "./commands/utility/database"
+import {createReactionsEntry, isReactionActivated, pushArtifact} from "./commands/utility/database"
 import {CronJob} from "cron"
 import {CommandHandler} from "./commands/model/CommandHandler"
+import {getArtifactImage} from "./commands/utility/artifacts";
+import {Artifact} from "./commands/model/genshinArtifactSimulator/Artifact";
 
 const bot = new Discord.Client({
     intents: [
@@ -174,6 +176,11 @@ bot.on("messageCreate", async (message) => {
                         name: "video.mp4"
                     }]
                 })
+            }
+            if (message.content === "_test") {
+                let artifact: Artifact = new Artifact("Marechaussee Hunter");
+                await message.reply({files: [await getArtifactImage(artifact)]})
+                pushArtifact(message, artifact)
             }
         }
         await commandHandler.handleMessage(message)
