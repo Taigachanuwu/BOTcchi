@@ -3,6 +3,7 @@ import Discord, {Client, EmbedBuilder, Message} from "discord.js";
 import {Artifact} from "./model/genshinArtifactSimulator/Artifact";
 import {getArtifactImage} from "./utility/artifacts";
 import {getArtifactByID, getArtifactByUser, pushArtifact, updateArtifact} from "./utility/database";
+import {buildEmbedPages} from "./utility/embed";
 
 export class ArtifactCommand extends BaseCommand {
     constructor() {
@@ -111,6 +112,6 @@ export class ArtifactCommand extends BaseCommand {
             // TODO change EmbedBuilder to MessageEmbed so that I can have pages
             embeds.push(embed)
         }
-        await interaction.reply({embeds: embeds})
+        await buildEmbedPages(interaction, embeds)
     }
 }
