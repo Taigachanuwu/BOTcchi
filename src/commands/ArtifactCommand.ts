@@ -11,22 +11,27 @@ export class ArtifactCommand extends BaseCommand {
             'artifact',
             'Functionality revolving Genshin Artifacts. \nUsage: !artifact {create, list, view [id], level [id] [level]}',
             ["user"],
-            "general"
+            "general",
+            ['a'],
         )
     }
 
     async execute(interaction: Message, args: string[], bot: Client): Promise<void> {
         switch (args[0]) {
             case "view":
+            case "v":
                 await this.viewArtifact(interaction, args[1])
                 break
             case "level":
+            case "lvl":
                 await this.levelArtifact(interaction, args[1], args[2] || '1')
                 break
             case "create":
+            case "c":
                 await this.createArtifact(interaction)
                 break
             case "list":
+            case "l":
                 await this.listArtifacts(interaction)
                 break
             case "_":

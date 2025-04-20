@@ -21,6 +21,9 @@ export class CommandHandler {
 
             if (typeof CommandClass === 'function') {
                 const commandInstance = new CommandClass() as BaseCommand;
+                for (let i = 0; i < commandInstance.alternativeNames.length; i++) {
+                    this.commands.set(commandInstance.alternativeNames[i], commandInstance);
+                }
                 this.commands.set(commandInstance.name, commandInstance);
             }
         }

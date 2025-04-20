@@ -5,12 +5,14 @@ export abstract class BaseCommand {
     description: string
     permissions: string[]
     category: string
+    alternativeNames: string[]
 
-    protected constructor(name: string, description: string, permissions: string[], category: string) {
+    protected constructor(name: string, description: string, permissions: string[], category: string, alternativeNames: string[] = []) {
         this.name = name
         this.description = description
         this.permissions = permissions
         this.category = category
+        this.alternativeNames = alternativeNames
     }
 
     abstract execute(
