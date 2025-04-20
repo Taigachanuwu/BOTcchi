@@ -159,27 +159,13 @@ export function pushArtifact(message: Message, artifact: Artifact) {
         artifact.substats[3] ? artifact.substats[3].getLevel() : null
     )
 }
-export function getArtifact(id: number): Artifact | null {
+export function getArtifactByID(id: number): Artifact | null {
     let sql = "SELECT * FROM artifacts WHERE id = ?"
     let result = database.prepare(sql).get(id)
     if (result === undefined){
         return null
     }
-    let substats: [string, number, number][] = [
-        [result.first_substat, result.first_substat_value, result.first_substat_rolls],
-        [result.second_substat, result.second_substat_value, result.second_substat_rolls],
-        [result.third_substat, result.third_substat_value, result.third_substat_rolls],
-    ]
-    if (result.fourth_substat !== null) {
-        substats.push([result.fourth_substat, result.fourth_substat_value, result.fourth_substat_rolls])
-    }
-    return new Artifact(
-        result.set,
-        null,
-        result.artifact_type,
-        [result.mainstat, result.mainstat_level],
-        substats
-    )
+    return buildArtifact(result)
 }
 export function updateArtifact(id: number, artifact: Artifact) {
     let substats: [string, number, number][] = artifact.getSubstatValues()
@@ -196,5 +182,33 @@ export function updateArtifact(id: number, artifact: Artifact) {
         substats[3] ? substats[3][1].toString() : null,
         substats[3] ? substats[3][2].toString() : null,
         id
+    )
+}
+export function getArtifactByUser(interaction: Message): Artifact[] {
+    let sql = "SELECT * FROM artifacts WHERE user_id = ?"
+    let result = database.prepare(sql).all(interaction.author.id)
+    let returnArray: Artifact[] = []
+    for (let i = 0; i < result.length; i++) {
+        returnArray.push(buildArtifact(result[i]))
+    }
+    return returnArray
+}
+
+function buildArtifact(result: Record<string, any>): Artifact {
+    let substats: [string, number, number][] = [
+        [result.first_substat, result.first_substat_value, result.first_substat_rolls],
+        [result.second_substat, result.second_substat_value, result.second_substat_rolls],
+        [result.third_substat, result.third_substat_value, result.third_substat_rolls],
+    ]
+    if (result.fourth_substat !== null) {
+        substats.push([result.fourth_substat, result.fourth_substat_value, result.fourth_substat_rolls])
+    }
+    return new Artifact(
+        result.set,
+        null,
+        result.artifact_type,
+        [result.mainstat, result.mainstat_level],
+        substats,
+        result.id
     )
 }

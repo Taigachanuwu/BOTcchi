@@ -61,6 +61,7 @@ export class Artifact {
         "Goblet",
         "Circlet"
     ]
+    id: number|null
     type: ArtifactType
     set: string
     mainstat: Mainstat
@@ -71,7 +72,8 @@ export class Artifact {
         secondSet: string|null = null,
         artifactType: string|null = null,
         mainstat: [string, number]|null = null,
-        substats: [string, number, number][] = []
+        substats: [string, number, number][] = [],
+        id: number|null = null
     ) {
         this.location = secondSet === null ? "Strongbox" : "Domain"
         this.set = secondSet === null ? firstSet : Math.random() < 0.5 ? firstSet : secondSet
@@ -85,6 +87,7 @@ export class Artifact {
         } else {
             this.substats = this.generateSubstats(this.mainstat)
         }
+        this.id = id
     }
 
     public getSubstatValues(): [string, number, number][] {
