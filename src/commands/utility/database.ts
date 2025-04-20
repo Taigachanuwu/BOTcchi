@@ -138,8 +138,7 @@ export function isReactionActivated(channelID: any) {
 }
 
 export function pushArtifact(message: Message, artifact: Artifact) {
-    console.log(artifact.set)
-    let sql = "INSERT INTO artifacts (user_id, 'set', artifact_type, mainstat, mainstat_level, first_substat, first_substat_value, first_substat_rolls, second_substat, second_substat_value, second_substat_rolls, third_stat, third_stat_value, third_stat_rolls, fourth_stat, fourth_stat_value, fourth_stat_rolls) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    let sql = "INSERT INTO artifacts (user_id, 'set', artifact_type, mainstat, mainstat_level, first_substat, first_substat_value, first_substat_rolls, second_substat, second_substat_value, second_substat_rolls, third_substat, third_substat_value, third_substat_rolls, fourth_substat, fourth_substat_value, fourth_substat_rolls) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     database.prepare(sql).run(
         message.author.id,
         artifact.set,
@@ -158,5 +157,44 @@ export function pushArtifact(message: Message, artifact: Artifact) {
         artifact.substats[3] ? artifact.substats[3].toString() : null,
         artifact.substats[3] ? artifact.substats[3].getRolls() : null,
         artifact.substats[3] ? artifact.substats[3].getLevel() : null
+    )
+}
+export function getArtifact(id: number): Artifact | null {
+    let sql = "SELECT * FROM artifacts WHERE id = ?"
+    let result = database.prepare(sql).get(id)
+    if (result === undefined){
+        return null
+    }
+    let substats: [string, number, number][] = [
+        [result.first_substat, result.first_substat_value, result.first_substat_rolls],
+        [result.second_substat, result.second_substat_value, result.second_substat_rolls],
+        [result.third_substat, result.third_substat_value, result.third_substat_rolls],
+    ]
+    if (result.fourth_substat !== null) {
+        substats.push([result.fourth_substat, result.fourth_substat_value, result.fourth_substat_rolls])
+    }
+    return new Artifact(
+        result.set,
+        null,
+        result.artifact_type,
+        [result.mainstat, result.mainstat_level],
+        substats
+    )
+}
+export function updateArtifact(id: number, artifact: Artifact) {
+    let substats: [string, number, number][] = artifact.getSubstatValues()
+    let sql = "UPDATE artifacts SET mainstat_level = ?, first_substat_value = ?, first_substat_rolls = ?, second_substat_value = ?, second_substat_rolls = ?, third_substat_value = ?, third_substat_rolls = ?, fourth_substat = ?, fourth_substat_value = ?, fourth_substat_rolls = ? WHERE id = ?"
+    database.prepare(sql).run(
+        artifact.mainstat.getLevel(),
+        substats[0][1].toString(),
+        substats[0][2].toString(),
+        substats[1][1].toString(),
+        substats[1][2].toString(),
+        substats[2][1].toString(),
+        substats[2][2].toString(),
+        substats[3] ? substats[3][0].toString() : null,
+        substats[3] ? substats[3][1].toString() : null,
+        substats[3] ? substats[3][2].toString() : null,
+        id
     )
 }

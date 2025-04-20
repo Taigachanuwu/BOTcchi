@@ -87,16 +87,18 @@ export class Artifact {
         }
     }
 
-    public getSubstatValues(): [string, string][] {
-        let substats : [string, string][] = []
-        this.substats.forEach(substat => substats.push([substat.toString(), substat.getRollsFormatted()]))
+    public getSubstatValues(): [string, number, number][] {
+        let substats : [string, number, number][] = []
+        this.substats.forEach(substat => substats.push([substat.toString(), substat.getRolls(), substat.getLevel()]))
         return substats
     }
 
     public levelArtifact() {
-        this.mainstat.levelUp()
-        if (this.mainstat.getLevel() % 4 === 0) {
-            this.levelSubstats()
+        if (this.mainstat.getLevel() < 20) {
+            this.mainstat.levelUp()
+            if (this.mainstat.getLevel() % 4 === 0) {
+                this.levelSubstats()
+            }
         }
     }
     private levelSubstats() {
