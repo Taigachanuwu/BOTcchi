@@ -27,8 +27,13 @@ export class SeasonCommand extends BaseCommand {
         let messageReply = `${interaction.guild.name}:\n\nRank      Name                   Win Loss Draw\n`
         for (let i = 0; i < leaderboard.length; i++) {
             let stats = leaderboard[i]
-            let user = await bot.users.fetch(stats["player_name"].slice(2, -1))
-            messageReply = this.buildTable(stats, user, messageReply, i)
+            let user: User = await bot.users.fetch(stats["player_name"].slice(2, -1))
+            try {
+                user = await bot.users.fetch(stats["player_name"].slice(2, -1))
+                messageReply = this.buildTable(stats, user, messageReply, i)
+            } catch {
+
+            }
         }
         interaction.channel.send("```" + (leaderboard.length !== 0 ? messageReply : "There are no records for this season") + "```")
     }

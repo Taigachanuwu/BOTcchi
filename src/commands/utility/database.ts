@@ -19,8 +19,9 @@ export function createReactionsEntry(channelID: any, serverID: any) {
     }
 }
 export function getMatchHistory(serverID: any, entries: number|null = null) {
-    let sql = `SELECT * FROM matches WHERE server_id = ? ORDER BY id DESC`
-    return database.prepare(sql).all(serverID).slice(0, entries)
+    let sql: string = `SELECT * FROM matches WHERE server_id = ? ORDER BY id`
+    let results: string[] = database.prepare(sql).all(serverID)
+    return database.prepare(sql).all(serverID).slice(0, entries || results.length)
 }
 export function getPlayerStats(serverID: any, playerID: any) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
@@ -31,8 +32,10 @@ export function getTableCount(tableName: string) {
     return database.prepare(sql).all().length
 }
 export function getRankedLeaderboard(serverID: any, orderKey = "current_rating") {
-    let sql = `SELECT * FROM player_stats WHERE server_id = ? ORDER BY ? DESC`
-    return database.prepare(sql).all(serverID, orderKey)
+    console.log(orderKey)
+    let sql = `SELECT * FROM player_stats WHERE server_id = ? ORDER BY ${orderKey} DESC`
+    console.log(database.prepare(sql).all(serverID))
+    return database.prepare(sql).all(serverID)
 }
 export function getRankedLeaderboardSeason(serverID: any, season: number|null = null) {
     let timestamp = new Date()
@@ -40,7 +43,7 @@ export function getRankedLeaderboardSeason(serverID: any, season: number|null = 
     let startDate = new Date(2025 + Math.floor(currentSeason/2), currentSeason % 2 === 0 ? 6 : 0, 1, 0, 0, 0)
     let endDate = new Date(startDate)
     endDate = new Date(endDate.setMonth(endDate.getMonth() + 6))
-    let seasonHistory = getMatchHistory(serverID).filter((entry: { [x: string]: string | number | Date; }) => new Date(entry["date"]).getTime() >= startDate.getTime() && new Date(entry["date"]).getTime() < endDate.getTime())
+    let seasonHistory = getMatchHistory(serverID).filter((entry: { [x: string]: string; }) => new Date(entry["date"]).getTime() >= startDate.getTime() && new Date(entry["date"]).getTime() < endDate.getTime())
     return simulateSeason(seasonHistory)
 }
 export function updateStatsDatabase(firstPlayer: any, secondPlayer: any, firstPlayerScore: any, secondPlayerScore: any, serverID: any) {
@@ -127,7 +130,7 @@ export function addResultToDatabase(matchResult: any[], serverID: any) {
     let winner = +scoreFirstPlayer < +scoreSecondPlayer ? secondPlayer : +scoreFirstPlayer > +scoreSecondPlayer ? firstPlayer : "Tie"
 
     let sql = "INSERT INTO matches (id, first_player, second_player, score_first_player, score_second_player, winner, server_id) VALUES (?,?,?,?,?,?,?)"
-    database.prepare(sql).run(getTableCount("matches") + 1, matchResult[1], matchResult[2], scoreFirstPlayer, scoreSecondPlayer, winner, serverID)
+    database.prepare(sql).run(getTableCount("matches") + 1, matchResult[0], matchResult[1], scoreFirstPlayer, scoreSecondPlayer, winner, serverID)
     updateStatsDatabase(firstPlayer, secondPlayer, scoreFirstPlayer, scoreSecondPlayer, serverID)
     return false
 }
