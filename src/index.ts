@@ -112,6 +112,7 @@ bot.on("channelCreate", (c) => {
 bot.on("messageCreate", async (message) => {
     try {
         if (message.author.bot) return;
+        if (message.channel.type == Discord.ChannelType.PublicThread || message.channel.type == Discord.ChannelType.PrivateThread) return;
         let response = isReactionActivated(message.channelId)
         if (response) {
             if (message.content.toLowerCase().includes("okarun")) {
