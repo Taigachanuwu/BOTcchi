@@ -19,7 +19,7 @@ export class SeasonCommand extends BaseCommand {
         }
         let argument = !!args[0] ? parseFloat(args[0]) : null
         let leaderboard
-        if (argument === null || !isNaN(argument)) {
+        if (argument === null) {
             leaderboard = getRankedLeaderboardSeason(interaction.guildId)
         } else {
             leaderboard = getRankedLeaderboardSeason(interaction.guildId, argument)

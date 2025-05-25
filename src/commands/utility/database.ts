@@ -32,9 +32,7 @@ export function getTableCount(tableName: string) {
     return database.prepare(sql).all().length
 }
 export function getRankedLeaderboard(serverID: any, orderKey = "current_rating") {
-    console.log(orderKey)
     let sql = `SELECT * FROM player_stats WHERE server_id = ? ORDER BY ${orderKey} DESC`
-    console.log(database.prepare(sql).all(serverID))
     return database.prepare(sql).all(serverID)
 }
 export function getRankedLeaderboardSeason(serverID: any, season: number|null = null) {
