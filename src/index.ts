@@ -114,7 +114,7 @@ bot.on("messageCreate", async (message) => {
         if (message.author.bot) return;
         if (message.channel.type == Discord.ChannelType.PublicThread || message.channel.type == Discord.ChannelType.PrivateThread) return;
         let response = isReactionActivated(message.channelId)
-        if (response) {
+        if (response && Math.random() < 0.1) {
             if (message.content.toLowerCase().includes("okarun")) {
                 let image = [
                     "assets/okarunGifs/dandadan-okarun.gif",
