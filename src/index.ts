@@ -22,9 +22,8 @@ let job: CronJob
 job = cron.CronJob.from({
     cronTime: '0 0 7 * * *',
     onTick: async function () {
-        let daysTillStartDandadan = Math.round((new Date(2025, 6, 3, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         let daysTillStartHelluva = Math.round((new Date(2026, 0, 1, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-        await (bot.channels.cache.get('1317023175300743231') as TextChannel).send(`Es sind noch \n- ${daysTillStartDandadan} Tage bis zur 2. Season von Dandadan\n- ${daysTillStartHelluva} Tage bis zur 3. Season von Helluva Boss!`)
+        await (bot.channels.cache.get('1317023175300743231') as TextChannel).send(`Es sind noch \n- ${daysTillStartHelluva} Tage bis zur 3. Season von Helluva Boss!`)
     },
     start: true,
     timeZone: 'Europe/Berlin'
@@ -85,6 +84,7 @@ export let commandHandler: CommandHandler
 let prefix: string
 bot.on("ready",async (c) => {
     console.log(c.user.tag.split("#")[0] + " is ready uwu")
+    console.log(c.guilds.cache)
     if(bot.user !== null) {
         prefix = bot.user.tag === "TESTcchi#3381" ? "_" : "!"
     }
