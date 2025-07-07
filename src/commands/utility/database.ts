@@ -38,7 +38,7 @@ export function getRankedLeaderboard(serverID: any, orderKey = "current_rating")
 export function getRankedLeaderboardSeason(serverID: any, season: number|null = null) {
     let timestamp = new Date()
     let currentSeason = season ?? 2 * (timestamp.getFullYear() - 2025) + (timestamp.getMonth() < 6 ? 1 : 2)
-    let startDate = new Date(2025 + Math.floor(currentSeason/2), currentSeason % 2 === 0 ? 6 : 0, 1, 0, 0, 0)
+    let startDate = new Date(2024 + Math.ceil(currentSeason/2), currentSeason % 2 === 0 ? 6 : 0, 1, 0, 0, 0)
     let endDate = new Date(startDate)
     endDate = new Date(endDate.setMonth(endDate.getMonth() + 6))
     let seasonHistory = getMatchHistory(serverID).filter((entry => new Date(entry["date"]).getTime() >= startDate.getTime() && new Date(entry["date"]).getTime() < endDate.getTime()))
