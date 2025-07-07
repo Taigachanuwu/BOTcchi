@@ -84,7 +84,6 @@ export let commandHandler: CommandHandler
 let prefix: string
 bot.on("ready",async (c) => {
     console.log(c.user.tag.split("#")[0] + " is ready uwu")
-    console.log(c.guilds.cache)
     if(bot.user !== null) {
         prefix = bot.user.tag === "TESTcchi#3381" ? "_" : "!"
     }
