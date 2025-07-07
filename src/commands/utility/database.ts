@@ -23,6 +23,16 @@ export function getMatchHistory(serverID: any, entries: number|null = null): Rec
     let results: Record<string, string>[] = database.prepare(sql).all(serverID)
     return results.slice(results.length - (entries || results.length))
 }
+export function getPlayerHistory(serverID: any, firstPlayer: string, entries: number|null = null): Record<string, string>[] {
+    let sql: string = `SELECT * FROM matches WHERE server_id = ? AND (first_player = ? OR second_player = ?) ORDER BY id`
+    let results: Record<string, string>[] = database.prepare(sql).all(serverID, firstPlayer, firstPlayer)
+    return results.slice(results.length - (entries || results.length))
+}
+export function getMatchUpHistory(serverID: any, firstPlayer: string, secondPlayer: string, entries: number|null = null): Record<string, string>[] {
+    let sql: string = `SELECT * FROM matches WHERE server_id = ? AND ((first_player = ? AND second_player = ?) OR (first_player = ? AND second_player = ?))ORDER BY id`
+    let results: Record<string, string>[] = database.prepare(sql).all(serverID, firstPlayer, secondPlayer, secondPlayer, firstPlayer)
+    return results.slice(results.length - (entries || results.length))
+}
 export function getPlayerStats(serverID: any, playerID: any) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
     return database.prepare(sql).get(playerID, serverID) ?? createPlayerEntry(playerID, serverID)
