@@ -28,17 +28,6 @@ job = cron.CronJob.from({
     start: true,
     timeZone: 'Europe/Berlin'
 })
-let DoTeapot: CronJob
-DoTeapot = cron.CronJob.from({
-    cronTime: '0 0 17 * * 0,3',
-    onTick: async function () {
-        let user = "<@469447356195143680>"
-        let message = `Don't forget picking up the plants in the teapot, ${user}!`
-        await (bot.channels.cache.get("1317246524828291154") as TextChannel).send(message)
-    },
-    start: true,
-    timeZone: 'Europe/Berlin'
-})
 
 let statuses = [
     "Bitch, you just jealous of my super saiyan swagger",
