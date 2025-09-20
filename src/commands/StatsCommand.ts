@@ -10,7 +10,7 @@ export class StatsCommand extends BaseCommand {
     constructor() {
         super(
             "stats",
-            "Returns the stats of the user or the tagged person. \nUsage: !stats { optional: Discord Tag, default: user }",
+            "Returns the stats of the user or the tagged person. \nUsage: !stats { optional: Discord Tag }",
             ["user"],
             "ranked",
         )

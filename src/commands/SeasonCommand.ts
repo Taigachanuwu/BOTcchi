@@ -7,7 +7,7 @@ export class SeasonCommand extends BaseCommand {
     constructor() {
         super(
             "season",
-            "Gets a ranked leaderboard. Usage: !season [optional: number]",
+            "Gets a ranked leaderboard. Usage: !season { optional: number }",
             ["user"],
             "ranked",
         )
