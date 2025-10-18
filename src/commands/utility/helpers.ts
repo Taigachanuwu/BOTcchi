@@ -1,4 +1,4 @@
-import {Message} from "discord.js";
+import {Guild, Message, User} from "discord.js";
 import {BaseCommand} from "../model/BaseCommand";
 
 import Discord from "discord.js";
@@ -30,4 +30,11 @@ export function buildHelpPage(message: Message, value: BaseCommand[], key: strin
     return page
 }
 
-module.exports = {isAdmin, buildHelpPage}
+export async function isUserInServer(server: Guild, user: User): Promise<boolean> {
+    let members = await server.members.fetch()
+    members = members.filter(m => m.user.id === user.id)
+
+    return members.size === 1
+}
+
+module.exports = {isAdmin, buildHelpPage, isUserInServer}
