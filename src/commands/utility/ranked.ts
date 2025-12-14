@@ -36,8 +36,8 @@ export function simulateSeason(matchHistory: string | any[]) {
             playerStatsList[firstPlayer] = new PlayerStats(
                 firstPlayer,
                 500,
-                0,
-                0,
+                500,
+                500,
                 0,
                 0,
                 0,
@@ -52,8 +52,8 @@ export function simulateSeason(matchHistory: string | any[]) {
             playerStatsList[secondPlayer] = new PlayerStats(
                 secondPlayer,
                 500,
-                0,
-                0,
+                500,
+                500,
                 0,
                 0,
                 0,
