@@ -28,7 +28,8 @@ export function getMatchHistory(serverID: any, entries: number | null = null): R
                        WHERE server_id = ?
                        ORDER BY id`
     let results: Record<string, string>[] = database.prepare(sql).all(serverID)
-    return results.slice((entries || 5) * -1)
+    if(!entries) return results
+    return results.slice(entries * -1)
 }
 
 export function getPlayerHistory(serverID: any, firstPlayer: string, entries: number | null = null): Record<string, string>[] {
@@ -88,7 +89,9 @@ export function getRankedLeaderboardSeason(serverID: any, season: number | null 
     let startDate = new Date(2024 + Math.ceil(currentSeason / 2), currentSeason % 2 === 0 ? 6 : 0, 1, 0, 0, 0)
     let endDate = new Date(startDate)
     endDate = new Date(endDate.setMonth(endDate.getMonth() + 6))
-    let seasonHistory = getMatchHistory(serverID).filter((entry => new Date(entry["date"]).getTime() >= startDate.getTime() && new Date(entry["date"]).getTime() < endDate.getTime()))
+    let seasonHistory = getMatchHistory(serverID).filter((entry =>
+        new Date(entry["date"]).getTime() >= startDate.getTime()
+        && new Date(entry["date"]).getTime() < endDate.getTime()))
     return simulateSeason(seasonHistory)
 }
 
