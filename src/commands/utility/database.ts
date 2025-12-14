@@ -1,59 +1,97 @@
 import {Artifact} from "../model/genshinArtifactSimulator/Artifact";
+import {getNewStats, PlayerStats, simulateSeason} from "./ranked";
+import {Message} from "discord.js";
+import {getCurrentRankedSeason} from "./helpers";
 
 require("dotenv").config()
-import {getNewStats, simulateSeason, PlayerStats} from "./ranked";
-import {Message} from "discord.js";
+
 const database = require("better-sqlite3")(process.env.FILE_PATH)
 
-export function createPlayerEntry(player: any, serverID: any){
+export function createPlayerEntry(player: any, serverID: any) {
     let sql = "INSERT INTO player_stats VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
-    database.prepare(sql).run(player,500,500,500,0,0,0,0,0,0,0, serverID)
+    database.prepare(sql).run(player, 500, 500, 500, 0, 0, 0, 0, 0, 0, 0, serverID)
     sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_ID = ?"
     return database.prepare(sql).get(player, serverID)
 }
+
 export function createReactionsEntry(channelID: any, serverID: any) {
     let statement = "SELECT * FROM reactions WHERE channel_id = ?"
     if (!database.prepare(statement).get(channelID)) {
         let sql = "INSERT INTO reactions VALUES(?,?,false)"
-        database.prepare(sql).run(channelID,serverID)
+        database.prepare(sql).run(channelID, serverID)
     }
 }
-export function getMatchHistory(serverID: any, entries: number|null = null): Record<string, string>[] {
-    let sql: string = `SELECT * FROM matches WHERE server_id = ? ORDER BY id`
+
+export function getMatchHistory(serverID: any, entries: number | null = null): Record<string, string>[] {
+    let sql: string = `SELECT *
+                       FROM matches
+                       WHERE server_id = ?
+                       ORDER BY id`
     let results: Record<string, string>[] = database.prepare(sql).all(serverID)
     return results.slice((entries || 5) * -1)
 }
-export function getPlayerHistory(serverID: any, firstPlayer: string, entries: number|null = null): Record<string, string>[] {
-    let sql: string = `SELECT * FROM matches WHERE server_id = ? AND (first_player = ? OR second_player = ?) ORDER BY id`
+
+export function getPlayerHistory(serverID: any, firstPlayer: string, entries: number | null = null): Record<string, string>[] {
+    let sql: string = `SELECT *
+                       FROM matches
+                       WHERE server_id = ?
+                         AND (first_player = ? OR second_player = ?)
+                       ORDER BY id`
     let results: Record<string, string>[] = database.prepare(sql).all(serverID, firstPlayer, firstPlayer)
     return results.slice((entries || 5) * -1)
 }
-export function getMatchUpHistory(serverID: any, firstPlayer: string, secondPlayer: string, entries: number|null = null): Record<string, string>[] {
-    let sql: string = `SELECT * FROM matches WHERE server_id = ? AND ((first_player = ? AND second_player = ?) OR (first_player = ? AND second_player = ?))ORDER BY id`
+
+export function getMatchUpHistory(serverID: any, firstPlayer: string, secondPlayer: string, entries: number | null = null): Record<string, string>[] {
+    let sql: string = `SELECT *
+                       FROM matches
+                       WHERE server_id = ?
+                         AND ((first_player = ? AND second_player = ?) OR (first_player = ? AND second_player = ?))
+                       ORDER BY id`
     let results: Record<string, string>[] = database.prepare(sql).all(serverID, firstPlayer, secondPlayer, secondPlayer, firstPlayer)
     return results.slice((entries || 5) * -1)
 }
+
 export function getPlayerStats(serverID: any, playerID: any) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
     return database.prepare(sql).get(playerID, serverID) ?? createPlayerEntry(playerID, serverID)
 }
+
 export function getTableCount(tableName: string) {
-    let sql = `SELECT * FROM ${tableName}`
+    let sql = `SELECT *
+               FROM ${tableName}`
     return database.prepare(sql).all().length
 }
-export function getRankedLeaderboard(serverID: any, orderKey = "current_rating") {
-    let sql = `SELECT * FROM player_stats WHERE server_id = ? ORDER BY ${orderKey} DESC`
-    return database.prepare(sql).all(serverID)
+
+export function getRankedLeaderboard(serverID: any, orderKey = "current_rating"): PlayerStats[] {
+    let sql = `SELECT *
+               FROM player_stats
+               WHERE server_id = ?
+               ORDER BY ${orderKey} DESC`
+    return database.prepare(sql).all(serverID).map((entry: { [x: string]: any; }) => new PlayerStats(
+        entry["player_name"],
+        entry["current_rating"],
+        entry["max_rating"],
+        entry["min_rating"],
+        entry["total_matches"],
+        entry["wins"],
+        entry["losses"],
+        entry["won_games"],
+        entry["lost_games"],
+        entry["current_streak"],
+        entry["best_streak"],
+        entry["server_id"],
+    ))
 }
-export function getRankedLeaderboardSeason(serverID: any, season: number|null = null) {
-    let timestamp = new Date()
-    let currentSeason = season ?? 2 * (timestamp.getFullYear() - 2025) + (timestamp.getMonth() < 6 ? 1 : 2)
-    let startDate = new Date(2024 + Math.ceil(currentSeason/2), currentSeason % 2 === 0 ? 6 : 0, 1, 0, 0, 0)
+
+export function getRankedLeaderboardSeason(serverID: any, season: number | null = null) {
+    let currentSeason = season ?? getCurrentRankedSeason(new Date())
+    let startDate = new Date(2024 + Math.ceil(currentSeason / 2), currentSeason % 2 === 0 ? 6 : 0, 1, 0, 0, 0)
     let endDate = new Date(startDate)
     endDate = new Date(endDate.setMonth(endDate.getMonth() + 6))
     let seasonHistory = getMatchHistory(serverID).filter((entry => new Date(entry["date"]).getTime() >= startDate.getTime() && new Date(entry["date"]).getTime() < endDate.getTime()))
     return simulateSeason(seasonHistory)
 }
+
 export function updateStatsDatabase(firstPlayer: any, secondPlayer: any, firstPlayerScore: any, secondPlayerScore: any, serverID: any) {
     let sql = "SELECT * FROM player_stats WHERE player_name = ? AND server_id = ?"
     let databaseExcerpt = database.prepare(sql).get(firstPlayer, serverID)
@@ -118,6 +156,7 @@ export function updateStatsDatabase(firstPlayer: any, secondPlayer: any, firstPl
         serverID
     )
 }
+
 export function updateReactionActivation(channelID: any, reactions: any) {
     let sql = "UPDATE reactions SET activated = ? WHERE channel_id = ?"
     database.prepare(sql).run(reactions ? 1 : 0, channelID)
@@ -170,6 +209,7 @@ export function pushArtifact(message: Message, artifact: Artifact) {
         artifact.substats[3] ? artifact.substats[3].getLevel() : null
     )
 }
+
 export function getArtifactByID(id: number): Artifact | null {
     let sql = "SELECT * FROM artifacts WHERE id = ?"
     let result = database.prepare(sql).get(id)
@@ -178,6 +218,7 @@ export function getArtifactByID(id: number): Artifact | null {
     }
     return buildArtifact(result)
 }
+
 export function updateArtifact(id: number, artifact: Artifact) {
     let substats: [string, number, number][] = artifact.getSubstatValues()
     let sql = "UPDATE artifacts SET mainstat_level = ?, first_substat_value = ?, first_substat_rolls = ?, second_substat_value = ?, second_substat_rolls = ?, third_substat_value = ?, third_substat_rolls = ?, fourth_substat = ?, fourth_substat_value = ?, fourth_substat_rolls = ? WHERE id = ?"
@@ -195,6 +236,7 @@ export function updateArtifact(id: number, artifact: Artifact) {
         id
     )
 }
+
 export function getArtifactByUser(interaction: Message): Artifact[] {
     let sql = "SELECT * FROM artifacts WHERE user_id = ?"
     let result = database.prepare(sql).all(interaction.author.id)

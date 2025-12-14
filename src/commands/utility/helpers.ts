@@ -1,7 +1,7 @@
-import {Guild, Message, User} from "discord.js";
+import Discord, {GuildMember, Message} from "discord.js";
 import {BaseCommand} from "../model/BaseCommand";
+import {PlayerStats} from "./ranked";
 
-import Discord from "discord.js";
 export function isAdmin(msg: Message) :boolean {
     if (!msg.member) {
         return false
@@ -30,11 +30,49 @@ export function buildHelpPage(message: Message, value: BaseCommand[], key: strin
     return page
 }
 
-export async function isUserInServer(server: Guild, user: User): Promise<boolean> {
-    let members = await server.members.fetch()
-    members = members.filter(m => m.user.id === user.id)
-
-    return members.size === 1
+export function getCurrentRankedSeason(currentDate: Date) {
+    return 2 * (currentDate.getFullYear() - 2025) + (currentDate.getMonth() < 6 ? 1 : 2)
 }
 
-module.exports = {isAdmin, buildHelpPage, isUserInServer}
+export async function buildTable(leaderboard: PlayerStats[], interaction: Message, messageReply: string): Promise<string> {
+    if (!interaction.guild || !("send" in interaction.channel)) {
+        return ""
+    }
+    let placement: number = 0
+    for (let i = 0; i < leaderboard.length; i++) {
+        let stats = leaderboard[i]
+        try {
+            let user = interaction.guild.members.cache.get(stats["player_name"].slice(2, -1))
+                ?? await interaction.guild.members.fetch(stats["player_name"].slice(2, -1)).catch(console.error)
+            if (!user) {
+                continue
+            }
+            messageReply += buildTableEntry(stats, user, placement)
+            placement++
+        } catch (e) {
+            console.log(e)
+        }
+    }
+    return messageReply
+}
+
+function buildTableEntry(stats: PlayerStats, member: GuildMember, i: number) :string {
+    let messageReply = ""
+    let secondLine =
+        "Games Played: ".padStart(24, " ")
+        + stats["total_matches"].toString().padEnd(4, " ")
+        + "--->"
+        + stats["wins"].toString().padStart(3," ")
+        + stats["losses"].toString().padStart(5," ")
+        + (+stats["total_matches"] - +stats["wins"] - +stats["losses"]).toString().padStart(5," ")
+        + "\n"
+    let thirdLine =
+        "Highest / Lowest: --->".padStart(32, " ")
+        + ` ${Math.round(+stats["max_rating"])} MMR / ${Math.round(+stats["min_rating"])} MMR\n`
+    messageReply += `${("<" + (i + 1) + ">:").padEnd(7, " ")}-> ${member.nickname ?? member.user.username} - ${Math.round(+stats["current_rating"])} MMR\n`
+    messageReply += secondLine
+    messageReply += thirdLine
+    return messageReply
+}
+
+module.exports = {isAdmin, buildHelpPage, buildTable, getCurrentRankedSeason}
