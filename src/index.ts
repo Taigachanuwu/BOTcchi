@@ -71,7 +71,7 @@ async function getChannelIds() {
 
 export let commandHandler: CommandHandler
 let prefix: string
-bot.on("clientReady",async (c) => {
+bot.on(Discord.Events.ClientReady ,async (c) => {
     console.log(c.user.tag.split("#")[0] + " is ready uwu")
     if(bot.user !== null) {
         prefix = bot.user.tag === "TESTcchi#3381" ? "_" : "!"
@@ -89,15 +89,15 @@ bot.on("clientReady",async (c) => {
     commandHandler = new CommandHandler(bot, prefix)
     await commandHandler.loadCommands("src/commands")
 })
-bot.on("guildCreate", (c) => {
+bot.on(Discord.Events.GuildCreate, (c) => {
     console.log("Joined " + c.name)
     getChannelIds().then(channels => channels.forEach(channel => createReactionsEntry(channel[0], channel[1])))
 })
-bot.on("channelCreate", (c) => {
+bot.on(Discord.Events.ChannelCreate, (c) => {
     console.log("New channel was created: " + c.guild.name, c.name)
     createReactionsEntry(c.id, c.guildId)
 })
-bot.on("messageCreate", async (message) => {
+bot.on(Discord.Events.MessageCreate, async (message) => {
     try {
         if (message.author.bot) return;
         if (message.channel.type == Discord.ChannelType.PublicThread || message.channel.type == Discord.ChannelType.PrivateThread) return;
