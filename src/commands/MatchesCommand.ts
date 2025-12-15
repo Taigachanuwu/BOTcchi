@@ -2,6 +2,7 @@ import {BaseCommand} from "./model/BaseCommand";
 import {Client, Message} from "discord.js";
 
 import {getMatchHistory, getMatchUpHistory, getPlayerHistory} from "./utility/database";
+import {buildEmbedPages} from "./utility/embed";
 const Discord = require("discord.js");
 
 export class MatchesCommand extends BaseCommand {
@@ -38,6 +39,7 @@ export class MatchesCommand extends BaseCommand {
         }
 
         let entries = args.length !== (entriesIndex + 1) ? 5 : +args[entriesIndex]
+        let entriesPerPage = 10
 
         let matchHistory: Record<string, string>[] = []
         if (entriesIndex == 0) {
@@ -47,11 +49,12 @@ export class MatchesCommand extends BaseCommand {
         } else if (entriesIndex == 2 && isOpponentUser) {
             matchHistory = getMatchUpHistory(interaction.guildId.toString(), args[0], args[1], entries)
         }
+        matchHistory.reverse()
 
         let embed = []
         for (let i = 0; i < matchHistory.length; i++) {
-            let page = Math.floor(i / 25)
-            if (i % 25 === 0) {
+            let page = Math.floor(i / entriesPerPage)
+            if (i % entriesPerPage === 0) {
                 embed[page] = new Discord.EmbedBuilder()
                     .setColor(0xE8A7A1)
                     .setTitle('Match History')
@@ -60,12 +63,15 @@ export class MatchesCommand extends BaseCommand {
                     .setTimestamp()
             }
             let entry = matchHistory[i]
+            let date = new Date(entry["date"])
             embed[page].addFields({
-                name: `Match ${entry["id"]}`,
+                name: `Match ${entry["id"]} - ${date.toLocaleDateString()}`,
                 value: `${entry["first_player"]} ${entry["score_first_player"]} - ${entry["score_second_player"]} ${entry["second_player"]}`
             })
         }
-        if (embed.length > 0) {
+        if (embed.length > 1) {
+            await buildEmbedPages(interaction, embed)
+        } else if (embed.length === 1) {
             await interaction.reply({embeds: [...embed]})
         } else {
             await interaction.reply("There are no results for this query.")
