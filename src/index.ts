@@ -1,4 +1,3 @@
-import {TextChannel} from "discord.js"
 import {createReactionsEntry, isReactionActivated} from "./commands/utility/database"
 import {CronJob} from "cron"
 import {CommandHandler} from "./commands/model/CommandHandler"
@@ -17,16 +16,6 @@ const bot = new Discord.Client({
         Discord.IntentsBitField.Flags.DirectMessageReactions,
         Discord.IntentsBitField.Flags.GuildVoiceStates
     ],
-})
-let job: CronJob
-job = cron.CronJob.from({
-    cronTime: '0 0 7 * * *',
-    onTick: async function () {
-        let daysTillStartHelluva = Math.round((new Date(2026, 0, 1, 20).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-        await (bot.channels.cache.get('1317023175300743231') as TextChannel).send(`Es sind noch \n- ${daysTillStartHelluva} Tage bis zur 3. Season von Helluva Boss!`)
-    },
-    start: true,
-    timeZone: 'Europe/Berlin'
 })
 
 let statuses = [
