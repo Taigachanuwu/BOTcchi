@@ -77,6 +77,7 @@ bot.on(Discord.Events.ClientReady ,async (c) => {
     }, 5 * 60 * 1000);
     commandHandler = new CommandHandler(bot, prefix)
     await commandHandler.loadCommands(__dirname+"/commands")
+    console.log("Loaded commands:", commandHandler.getCommands().size);
 })
 bot.on(Discord.Events.GuildCreate, (c) => {
     console.log("Joined " + c.name)
