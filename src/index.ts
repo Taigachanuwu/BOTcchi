@@ -50,7 +50,8 @@ let statuses = [
     "Dodge!",
     "Haben wir noch Peps dabei?",
     "I like me some good turkish rotational ham",
-    "The source is that I made it the fuck up"
+    "The source is that I made it the fuck up",
+    "learning window lineup from Neku"
 ]
 async function getChannelIds() {
     const discordServers = bot.guilds.cache;
