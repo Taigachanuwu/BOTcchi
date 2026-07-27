@@ -1,4 +1,4 @@
-FROM node:24.18.0-alpine
+FROM node:22.18.0-alpine
 WORKDIR /mnt/user/appdata/BOTcchi
 COPY package*.json ./
 RUN npm install
