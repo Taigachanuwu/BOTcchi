@@ -1,5 +1,5 @@
 FROM node:20.18.0-alpine
-WORKDIR mnt/user/appdata/BOTcchi
+WORKDIR /mnt/user/appdata/BOTcchi
 COPY package*.json ./
 RUN npm install
 COPY . .
