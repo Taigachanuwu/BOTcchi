@@ -13,7 +13,7 @@ export class CommandHandler {
     }
 
     public async loadCommands(commandsPath: string) {
-        const files = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+        const files = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
 
         for (const file of files) {
             const filePath = path.resolve(commandsPath, file);
